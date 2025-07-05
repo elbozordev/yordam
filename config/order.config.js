@@ -1,4 +1,4 @@
-// config/order.config.js
+
 
 'use strict';
 
@@ -8,19 +8,19 @@ const { TIME_WINDOWS } = require('../src/utils/constants/time-constants');
 const { LIMITS } = require('../src/utils/constants/validation-rules');
 
 module.exports = {
-    // Основные настройки
+    
     general: {
-        // Префикс номера заказа
+        
         numberPrefix: process.env.ORDER_NUMBER_PREFIX || 'Y24',
 
-        // Типы заказов
+        
         types: {
             IMMEDIATE: 'immediate',
             SCHEDULED: 'scheduled',
             RECURRING: 'recurring'
         },
 
-        // Источники заказов
+        
         sources: {
             MOBILE_APP: 'mobile_app',
             WEB: 'web',
@@ -28,7 +28,7 @@ module.exports = {
             API: 'api'
         },
 
-        // Приоритеты
+        
         priorities: {
             LOW: { value: 0, label: 'low' },
             NORMAL: { value: 1, label: 'normal' },
@@ -38,107 +38,107 @@ module.exports = {
         }
     },
 
-    // Временные ограничения (в миллисекундах)
+    
     timeouts: {
-        // Поиск мастера
+        
         search: {
-            initial: parseInt(process.env.ORDER_SEARCH_TIMEOUT) || 300000,      // 5 минут
-            extended: parseInt(process.env.ORDER_SEARCH_EXTENDED) || 600000,    // 10 минут
-            max: parseInt(process.env.ORDER_SEARCH_MAX) || 900000              // 15 минут
+            initial: parseInt(process.env.ORDER_SEARCH_TIMEOUT) || 300000,      
+            extended: parseInt(process.env.ORDER_SEARCH_EXTENDED) || 600000,    
+            max: parseInt(process.env.ORDER_SEARCH_MAX) || 900000              
         },
 
-        // Ответ мастера
+        
         response: {
-            default: parseInt(process.env.MASTER_RESPONSE_TIMEOUT) || 30000,    // 30 секунд
-            busy: 45000,                                                        // 45 секунд в час пик
-            night: 60000                                                        // 60 секунд ночью
+            default: parseInt(process.env.MASTER_RESPONSE_TIMEOUT) || 30000,    
+            busy: 45000,                                                        
+            night: 60000                                                        
         },
 
-        // Прибытие
+        
         arrival: {
-            city: 1800000,      // 30 минут в городе
-            suburb: 2700000,    // 45 минут в пригороде
-            rush: 3600000,      // 60 минут в час пик
-            max: 5400000        // 90 минут максимум
+            city: 1800000,      
+            suburb: 2700000,    
+            rush: 3600000,      
+            max: 5400000        
         },
 
-        // Выполнение работы
+        
         work: {
-            min: 600000,        // 10 минут минимум
-            standard: 3600000,  // 1 час стандарт
-            complex: 7200000,   // 2 часа сложные работы
-            max: 10800000       // 3 часа максимум
+            min: 600000,        
+            standard: 3600000,  
+            complex: 7200000,   
+            max: 10800000       
         },
 
-        // Оплата
+        
         payment: {
-            immediate: 300000,  // 5 минут на оплату на месте
-            deferred: 86400000  // 24 часа отложенная оплата
+            immediate: 300000,  
+            deferred: 86400000  
         },
 
-        // Отмена
+        
         cancellation: {
-            free: 120000,       // 2 минуты бесплатная отмена
-            penalty: 300000     // 5 минут отмена со штрафом
+            free: 120000,       
+            penalty: 300000     
         }
     },
 
-    // Лимиты и ограничения
+    
     limits: {
-        // Заказы пользователя
+        
         customer: {
             maxActiveOrders: parseInt(process.env.MAX_ACTIVE_ORDERS_PER_CUSTOMER) || 3,
             maxDailyOrders: parseInt(process.env.MAX_DAILY_ORDERS_PER_CUSTOMER) || 20,
             maxMonthlyOrders: 200,
 
-            // Отмены
-            maxFreeCancellations: 3,        // В месяц
-            cancellationPenaltyRate: 0.1    // 10% от стоимости
+            
+            maxFreeCancellations: 3,        
+            cancellationPenaltyRate: 0.1    
         },
 
-        // Заказы мастера
+        
         master: {
             maxActiveOrders: 3,
             maxDailyOrders: 15,
 
-            // Отклонения
+            
             maxDailyRejections: 5,
-            rejectionPenaltyThreshold: 0.3  // 30% отклонений = штраф
+            rejectionPenaltyThreshold: 0.3  
         },
 
-        // Планирование
+        
         scheduling: {
-            minAheadTime: 300000,           // 5 минут минимум
-            maxAheadTime: 2592000000,       // 30 дней максимум
-            maxRecurringPeriod: 7776000000  // 90 дней
+            minAheadTime: 300000,           
+            maxAheadTime: 2592000000,       
+            maxRecurringPeriod: 7776000000  
         },
 
-        // Поиск
+        
         search: {
-            initialRadius: 3000,             // 3 км начальный радиус
-            radiusStep: 2000,                // Шаг расширения 2 км
-            maxRadius: 50000,                // 50 км максимум
-            minCandidates: 3,                // Минимум кандидатов
-            maxCandidates: 20,               // Максимум кандидатов
-            maxAttempts: 5                   // Максимум попыток поиска
+            initialRadius: 3000,             
+            radiusStep: 2000,                
+            maxRadius: 50000,                
+            minCandidates: 3,                
+            maxCandidates: 20,               
+            maxAttempts: 5                   
         },
 
-        // Медиа файлы
+        
         media: {
             maxPhotos: 5,
-            maxPhotoSize: 5242880,           // 5MB
-            maxVideoSize: 52428800,          // 50MB
-            maxTotalSize: 104857600,         // 100MB
+            maxPhotoSize: 5242880,           
+            maxVideoSize: 52428800,          
+            maxTotalSize: 104857600,         
             allowedTypes: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4']
         }
     },
 
-    // Статусы и переходы
+    
     statuses: {
-        // Используем константы из order-status.js
+        
         ...ORDER_STATUS,
 
-        // Финальные статусы (для быстрой проверки)
+        
         final: [
             ORDER_STATUS.COMPLETED,
             ORDER_STATUS.CANCELLED,
@@ -146,7 +146,7 @@ module.exports = {
             ORDER_STATUS.EXPIRED
         ],
 
-        // Активные статусы
+        
         active: [
             ORDER_STATUS.NEW,
             ORDER_STATUS.SEARCHING,
@@ -157,7 +157,7 @@ module.exports = {
             ORDER_STATUS.IN_PROGRESS
         ],
 
-        // Статусы, когда можно отменить
+        
         cancellable: [
             ORDER_STATUS.NEW,
             ORDER_STATUS.SEARCHING,
@@ -167,117 +167,117 @@ module.exports = {
         ]
     },
 
-    // Правила поиска и назначения
+    
     assignment: {
-        // Методы назначения
+        
         methods: {
-            AUTO: 'auto',                    // Автоматический подбор
-            MANUAL: 'manual',                // Ручное назначение
-            CUSTOMER_CHOICE: 'customer',     // Выбор клиента
-            PREFERRED: 'preferred'           // Предпочитаемый мастер
+            AUTO: 'auto',                    
+            MANUAL: 'manual',                
+            CUSTOMER_CHOICE: 'customer',     
+            PREFERRED: 'preferred'           
         },
 
-        // Алгоритм подбора
+        
         algorithm: {
-            // Веса факторов (сумма = 1.0)
+            
             weights: {
-                distance: 0.3,               // 30% - расстояние
-                rating: 0.25,                // 25% - рейтинг
-                experience: 0.15,            // 15% - опыт
-                price: 0.15,                 // 15% - цена
-                availability: 0.1,           // 10% - доступность
-                loyalty: 0.05                // 5% - лояльность
+                distance: 0.3,               
+                rating: 0.25,                
+                experience: 0.15,            
+                price: 0.15,                 
+                availability: 0.1,           
+                loyalty: 0.05                
             },
 
-            // Пороги
+            
             thresholds: {
-                minRating: 3.5,              // Минимальный рейтинг
-                maxDistance: 20000,          // Максимальное расстояние (м)
-                minBatteryLevel: 20,         // Минимальный заряд батареи
-                maxActiveOrders: 3           // Максимум активных заказов
+                minRating: 3.5,              
+                maxDistance: 20000,          
+                minBatteryLevel: 20,         
+                maxActiveOrders: 3           
             },
 
-            // Бонусы/штрафы
+            
             modifiers: {
-                preferredMaster: 1.5,        // x1.5 для предпочитаемых
-                previousMaster: 1.3,         // x1.3 для прошлых мастеров
-                lowBattery: 0.8,             // x0.8 при низком заряде
-                highLoad: 0.7,               // x0.7 при высокой загрузке
-                recentRejection: 0.5         // x0.5 после недавнего отказа
+                preferredMaster: 1.5,        
+                previousMaster: 1.3,         
+                lowBattery: 0.8,             
+                highLoad: 0.7,               
+                recentRejection: 0.5         
             }
         },
 
-        // Настройки уведомлений
+        
         notifications: {
-            batchSize: 5,                    // Уведомлять по 5 мастеров
-            batchDelay: 10000,               // 10 секунд между батчами
-            maxBatches: 4,                   // Максимум 4 батча (20 мастеров)
+            batchSize: 5,                    
+            batchDelay: 10000,               
+            maxBatches: 4,                   
 
-            // Приоритетное уведомление
+            
             priority: {
-                vipCustomer: true,           // VIP клиенты
-                urgentOrder: true,           // Срочные заказы
-                preferredMaster: true        // Предпочитаемые мастера
+                vipCustomer: true,           
+                urgentOrder: true,           
+                preferredMaster: true        
             }
         }
     },
 
-    // Ценообразование
+    
     pricing: {
-        // Комиссии платформы
+        
         commission: {
-            base: 0.15,                      // 15% базовая
+            base: 0.15,                      
 
-            // По типам исполнителей
+            
             byExecutorType: {
-                master: 0.15,                // 15% с независимых мастеров
-                sto_employee: 0.10,          // 10% с сотрудников СТО
-                sto: 0.10,                   // 10% с СТО
-                specialist: 0.12             // 12% со специалистов
+                master: 0.15,                
+                sto_employee: 0.10,          
+                sto: 0.10,                   
+                specialist: 0.12             
             },
 
-            // Льготы
+            
             discounts: {
-                newMaster: 0.5,              // 50% скидка первый месяц
-                highVolume: 0.9,             // 10% скидка за объем
-                vipPartner: 0.8              // 20% скидка VIP партнерам
+                newMaster: 0.5,              
+                highVolume: 0.9,             
+                vipPartner: 0.8              
             }
         },
 
-        // Минимальные суммы
+        
         minimums: {
-            orderAmount: 30000,              // Минимальная сумма заказа
-            platformFee: 5000,               // Минимальная комиссия
-            cancellationFee: 10000           // Минимальный штраф за отмену
+            orderAmount: 30000,              
+            platformFee: 5000,               
+            cancellationFee: 10000           
         },
 
-        // Дополнительные сборы
+        
         surcharges: {
-            night: 0.3,                      // +30% ночью (22:00-06:00)
-            weekend: 0.2,                    // +20% в выходные
-            holiday: 0.5,                    // +50% в праздники
-            urgent: 0.3,                     // +30% за срочность
-            distance: 5000                   // 5000 сум/км свыше лимита
+            night: 0.3,                      
+            weekend: 0.2,                    
+            holiday: 0.5,                    
+            urgent: 0.3,                     
+            distance: 5000                   
         }
     },
 
-    // Рейтинги и отзывы
+    
     feedback: {
-        // Настройки рейтинга
+        
         rating: {
             scale: { min: 1, max: 5 },
-            required: true,                  // Обязательная оценка
+            required: true,                  
 
-            // Категории оценки
+            
             categories: [
-                'quality',                   // Качество работы
-                'speed',                     // Скорость выполнения
-                'price',                     // Соответствие цены
-                'communication',             // Общение
-                'cleanliness'               // Чистота/аккуратность
+                'quality',                   
+                'speed',                     
+                'price',                     
+                'communication',             
+                'cleanliness'               
             ],
 
-            // Веса категорий для общего рейтинга
+            
             weights: {
                 quality: 0.4,
                 speed: 0.2,
@@ -287,27 +287,27 @@ module.exports = {
             }
         },
 
-        // Временные ограничения
-        timeLimit: 604800000,                // 7 дней на оставление отзыва
-        editWindow: 86400000,                // 24 часа на редактирование
+        
+        timeLimit: 604800000,                
+        editWindow: 86400000,                
 
-        // Модерация
+        
         moderation: {
             enabled: true,
-            autoApprove: true,               // Автоодобрение
+            autoApprove: true,               
 
-            // Триггеры для ручной модерации
+            
             triggers: {
-                lowRating: 2,                // Рейтинг <= 2
+                lowRating: 2,                
                 keywords: ['обман', 'мошенник', 'украл'],
-                complaintsCount: 3           // 3+ жалобы
+                complaintsCount: 3           
             }
         }
     },
 
-    // Повторяющиеся заказы
+    
     recurring: {
-        // Частоты повторения
+        
         frequencies: {
             DAILY: { value: 'daily', interval: 86400000 },
             WEEKLY: { value: 'weekly', interval: 604800000 },
@@ -315,107 +315,107 @@ module.exports = {
             MONTHLY: { value: 'monthly', interval: 2592000000 }
         },
 
-        // Настройки
+        
         settings: {
-            maxActive: 5,                    // Максимум активных подписок
-            advanceNotice: 86400000,         // Уведомление за 24 часа
-            autoConfirm: false,              // Автоподтверждение
+            maxActive: 5,                    
+            advanceNotice: 86400000,         
+            autoConfirm: false,              
 
-            // Пропуски
-            maxSkips: 3,                     // Максимум пропусков подряд
-            skipOnHolidays: true,            // Пропускать в праздники
+            
+            maxSkips: 3,                     
+            skipOnHolidays: true,            
 
-            // Отмена
-            cancellationNotice: 172800000    // 48 часов до отмены
+            
+            cancellationNotice: 172800000    
         }
     },
 
-    // Коммуникация
+    
     communication: {
-        // Чат
+        
         chat: {
             enabled: true,
             maxMessageLength: 1000,
-            maxMediaSize: 10485760,          // 10MB
+            maxMediaSize: 10485760,          
 
-            // Автосообщения
+            
             autoMessages: {
-                onAssign: true,              // При назначении
-                onArrival: true,             // При прибытии
-                onComplete: true             // При завершении
+                onAssign: true,              
+                onArrival: true,             
+                onComplete: true             
             }
         },
 
-        // Звонки
+        
         calls: {
             enabled: true,
             provider: process.env.CALL_PROVIDER || 'twilio',
 
-            // Маскировка номеров
+            
             masking: {
                 enabled: true,
-                duration: 86400000           // 24 часа после заказа
+                duration: 86400000           
             },
 
-            // Лимиты
+            
             limits: {
-                maxDuration: 600,            // 10 минут максимум
-                maxPerOrder: 5               // 5 звонков на заказ
+                maxDuration: 600,            
+                maxPerOrder: 5               
             }
         }
     },
 
-    // Безопасность и антифрод
+    
     security: {
-        // Подозрительная активность
+        
         fraud: {
             triggers: {
-                // Клиент
+                
                 customer: {
-                    tooManyOrders: 10,       // 10+ заказов в день
-                    tooManyCancellations: 5, // 5+ отмен в день
-                    unusualLocations: 5,     // 5+ разных локаций
-                    rapidOrders: 3           // 3+ заказа за час
+                    tooManyOrders: 10,       
+                    tooManyCancellations: 5, 
+                    unusualLocations: 5,     
+                    rapidOrders: 3           
                 },
 
-                // Мастер
+                
                 master: {
-                    tooManyRejections: 10,   // 10+ отказов в день
-                    suspiciousRoute: true,   // Странный маршрут
-                    quickCompletion: 300     // Завершение < 5 минут
+                    tooManyRejections: 10,   
+                    suspiciousRoute: true,   
+                    quickCompletion: 300     
                 }
             },
 
-            // Действия
+            
             actions: {
-                flag: true,                  // Пометить
-                notify: true,                // Уведомить безопасность
-                block: false,                // Блокировать
-                requireVerification: true    // Требовать проверку
+                flag: true,                  
+                notify: true,                
+                block: false,                
+                requireVerification: true    
             }
         },
 
-        // Верификация
+        
         verification: {
-            // Фото подтверждение
+            
             photoProof: {
                 required: ['towing', 'complex_service'],
                 beforeWork: true,
                 afterWork: true
             },
 
-            // Геолокация
+            
             location: {
-                continuous: true,            // Постоянное отслеживание
-                accuracy: 50,                // Точность 50м
-                spoofingCheck: true          // Проверка подделки
+                continuous: true,            
+                accuracy: 50,                
+                spoofingCheck: true          
             }
         }
     },
 
-    // Аналитика и метрики
+    
     analytics: {
-        // Что отслеживать
+        
         track: {
             searchTime: true,
             responseTime: true,
@@ -426,16 +426,16 @@ module.exports = {
             masterUtilization: true
         },
 
-        // Цели SLA
+        
         sla: {
-            searchTime: 180,                 // 3 минуты
-            responseTime: 30,                // 30 секунд
-            arrivalTime: 1800,               // 30 минут
-            completionRate: 0.95,            // 95%
-            satisfactionScore: 4.5           // 4.5+
+            searchTime: 180,                 
+            responseTime: 30,                
+            arrivalTime: 1800,               
+            completionRate: 0.95,            
+            satisfactionScore: 4.5           
         },
 
-        // Алерты
+        
         alerts: {
             slaViolation: true,
             highCancellation: true,
@@ -444,13 +444,13 @@ module.exports = {
         }
     },
 
-    // Интеграции
+    
     integrations: {
-        // Карты
+        
         maps: {
             provider: process.env.MAPS_PROVIDER || 'google',
 
-            // Настройки маршрутизации
+            
             routing: {
                 mode: 'driving',
                 avoidTolls: false,
@@ -458,14 +458,14 @@ module.exports = {
                 optimizeWaypoints: true
             },
 
-            // Обновление ETA
+            
             eta: {
-                updateInterval: 30000,       // 30 секунд
-                significantChange: 120       // 2 минуты изменение
+                updateInterval: 30000,       
+                significantChange: 120       
             }
         },
 
-        // Платежи
+        
         payments: {
             providers: {
                 payme: { enabled: true, priority: 1 },
@@ -473,27 +473,27 @@ module.exports = {
                 uzcard: { enabled: true, priority: 3 }
             },
 
-            // Автоматические действия
+            
             auto: {
-                chargeOnComplete: false,     // Автосписание
-                refundOnCancel: true,        // Автовозврат
-                holdAmount: true             // Холдирование
+                chargeOnComplete: false,     
+                refundOnCancel: true,        
+                holdAmount: true             
             }
         }
     },
 
-    // Кэширование
+    
     cache: {
-        // TTL в секундах
+        
         ttl: {
-            orderDetails: 300,               // 5 минут
-            customerOrders: 60,              // 1 минута
-            masterOrders: 60,                // 1 минута
-            searchResults: 30,               // 30 секунд
-            pricing: 600                     // 10 минут
+            orderDetails: 300,               
+            customerOrders: 60,              
+            masterOrders: 60,                
+            searchResults: 30,               
+            pricing: 600                     
         },
 
-        // Префиксы ключей
+        
         keys: {
             order: 'order:',
             search: 'order:search:',
@@ -502,9 +502,9 @@ module.exports = {
         }
     },
 
-    // Очереди и воркеры
+    
     queues: {
-        // Названия очередей
+        
         names: {
             search: 'order.search',
             assignment: 'order.assignment',
@@ -514,7 +514,7 @@ module.exports = {
             analytics: 'order.analytics'
         },
 
-        // Настройки обработки
+        
         processing: {
             search: {
                 concurrency: 10,

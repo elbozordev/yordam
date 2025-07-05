@@ -1,4 +1,4 @@
-// src/services/payment/wallet.service.js
+
 
 'use strict';
 
@@ -20,10 +20,7 @@ const { USER_ROLES } = require('../../utils/constants/user-roles');
 const PaymentError = require('../../utils/errors/payment-error');
 const PaymentValidator = require('../../utils/validators/payment.validator');
 
-/**
- * Сервис управления кошельками
- * Обеспечивает работу с балансами, транзакциями и выводами
- */
+
 class WalletService {
     constructor(walletModel, transactionModel, paymentModel, cacheService, auditService, redis, logger) {
         this.walletModel = walletModel;
@@ -34,9 +31,9 @@ class WalletService {
         this.redis = redis;
         this.logger = logger;
 
-        // Конфигурация
+        
         this.config = {
-            // Префиксы для Redis ключей
+            
             redisKeys: {
                 balance: (walletId) => `wallet:${walletId}:balance`,
                 lock: (walletId) => `wallet:${walletId}:lock`,
@@ -44,25 +41,23 @@ class WalletService {
                 monthlyLimit: (walletId, type) => `wallet:${walletId}:limit:${type}:monthly`
             },
 
-            // TTL для кеша (секунды)
+            
             cacheTTL: {
-                balance: 300,        // 5 минут
-                limits: 3600,        // 1 час
-                lock: 30            // 30 секунд для distributed lock
+                balance: 300,        
+                limits: 3600,        
+                lock: 30            
             },
 
-            // Настройки безопасности
+            
             security: {
                 maxRetries: 3,
-                lockTimeout: 5000,   // 5 секунд
-                doubleSpendWindow: 1000 // 1 секунда
+                lockTimeout: 5000,   
+                doubleSpendWindow: 1000 
             }
         };
     }
 
-    /**
-     * Создание кошелька
-     */
+    
     async createWallet(ownerData, options = {}) {
         try {
             const walletData = {
@@ -70,16 +65,16 @@ class WalletService {
                 currency: 'UZS',
                 status: WALLET_STATUS.ACTIVE,
 
-                // Настройки по типу владельца
+                
                 ...this.getDefaultSettings(ownerData),
 
-                // Дополнительные опции
+                
                 ...options
             };
 
             const wallet = await this.walletModel.create(walletData);
 
-            // Логируем создание
+            
             await this.audit.log({
                 action: 'WALLET_CREATED',
                 category: 'PAYMENT',
@@ -101,19 +96,17 @@ class WalletService {
         }
     }
 
-    /**
-     * Получение кошелька пользователя
-     */
+    
     async getUserWallet(userId, createIfNotExists = true) {
-        // Проверяем кеш
+        
         const cacheKey = `wallet:user:${userId}`;
         const cached = await this.cache.get(cacheKey, { namespace: 'wallet' });
         if (cached) return cached;
 
-        // Ищем в БД
+        
         let wallet = await this.walletModel.findByUserId(userId);
 
-        // Создаем если не существует
+        
         if (!wallet && createIfNotExists) {
             wallet = await this.createWallet({ userId, type: WALLET_TYPES.USER });
         }
@@ -122,28 +115,26 @@ class WalletService {
             throw PaymentError.walletNotFound(userId);
         }
 
-        // Кешируем
+        
         await this.cache.set(cacheKey, wallet, {
             namespace: 'wallet',
-            ttl: 3600 // 1 час
+            ttl: 3600 
         });
 
         return wallet;
     }
 
-    /**
-     * Получение кошелька СТО
-     */
+    
     async getStoWallet(stoId, createIfNotExists = true) {
-        // Проверяем кеш
+        
         const cacheKey = `wallet:sto:${stoId}`;
         const cached = await this.cache.get(cacheKey, { namespace: 'wallet' });
         if (cached) return cached;
 
-        // Ищем в БД
+        
         let wallet = await this.walletModel.findByStoId(stoId);
 
-        // Создаем если не существует
+        
         if (!wallet && createIfNotExists) {
             wallet = await this.createWallet({ stoId, type: WALLET_TYPES.STO });
         }
@@ -152,7 +143,7 @@ class WalletService {
             throw PaymentError.walletNotFound(stoId);
         }
 
-        // Кешируем
+        
         await this.cache.set(cacheKey, wallet, {
             namespace: 'wallet',
             ttl: 3600
@@ -161,11 +152,9 @@ class WalletService {
         return wallet;
     }
 
-    /**
-     * Получение баланса
-     */
+    
     async getBalance(walletId, useCache = true) {
-        // Проверяем кеш
+        
         if (useCache) {
             const cached = await this.redis.get(this.config.redisKeys.balance(walletId));
             if (cached) {
@@ -173,7 +162,7 @@ class WalletService {
             }
         }
 
-        // Получаем из БД
+        
         const wallet = await this.walletModel.findById(walletId);
         if (!wallet) {
             throw PaymentError.walletNotFound(walletId);
@@ -186,7 +175,7 @@ class WalletService {
             total: wallet.balance.total
         };
 
-        // Кешируем
+        
         await this.redis.setex(
             this.config.redisKeys.balance(walletId),
             this.config.cacheTTL.balance,
@@ -196,23 +185,21 @@ class WalletService {
         return balance;
     }
 
-    /**
-     * Пополнение кошелька
-     */
+    
     async deposit(walletId, amount, transactionData) {
         return await this.executeWithLock(walletId, async () => {
-            // Валидация
+            
             const validation = PaymentValidator.validateAmount(amount);
             if (!validation.valid) {
                 throw ValidationErrorFactory.fromArray(validation.errors);
             }
 
-            // Обновляем баланс
+            
             const wallet = await this.walletModel.updateBalance(walletId, {
                 available: { main: amount }
             });
 
-            // Создаем транзакцию
+            
             const transaction = await this.createTransaction({
                 walletId,
                 type: PAYMENT_TYPES.TOP_UP,
@@ -222,16 +209,16 @@ class WalletService {
                 ...transactionData
             });
 
-            // Обновляем статистику
+            
             await this.walletModel.updateStatistics(walletId, {
                 type: PAYMENT_TYPES.TOP_UP,
                 amount
             });
 
-            // Инвалидируем кеш
+            
             await this.invalidateCache(walletId);
 
-            // Логируем
+            
             await this.audit.logPayment(
                 'WALLET_DEPOSIT',
                 { _id: transaction._id, amount },
@@ -247,29 +234,27 @@ class WalletService {
         });
     }
 
-    /**
-     * Списание с кошелька
-     */
+    
     async withdraw(walletId, amount, transactionData) {
         return await this.executeWithLock(walletId, async () => {
-            // Валидация
+            
             const validation = PaymentValidator.validateAmount(amount);
             if (!validation.valid) {
                 throw ValidationErrorFactory.fromArray(validation.errors);
             }
 
-            // Проверяем баланс
+            
             const balance = await this.getBalance(walletId, false);
             if (balance.available.main < amount) {
                 throw PaymentError.insufficientBalance(amount, balance.available.main);
             }
 
-            // Обновляем баланс
+            
             const wallet = await this.walletModel.updateBalance(walletId, {
                 available: { main: -amount }
             });
 
-            // Создаем транзакцию
+            
             const transaction = await this.createTransaction({
                 walletId,
                 type: PAYMENT_TYPES.WITHDRAWAL,
@@ -279,16 +264,16 @@ class WalletService {
                 ...transactionData
             });
 
-            // Обновляем статистику
+            
             await this.walletModel.updateStatistics(walletId, {
                 type: PAYMENT_TYPES.WITHDRAWAL,
                 amount
             });
 
-            // Инвалидируем кеш
+            
             await this.invalidateCache(walletId);
 
-            // Логируем
+            
             await this.audit.logPayment(
                 'WALLET_WITHDRAW',
                 { _id: transaction._id, amount },
@@ -304,37 +289,35 @@ class WalletService {
         });
     }
 
-    /**
-     * Перевод между кошельками
-     */
+    
     async transfer(fromWalletId, toWalletId, amount, transactionData) {
-        // Сортируем ID для предотвращения deadlock
+        
         const sortedWalletIds = [fromWalletId, toWalletId].sort();
 
         return await this.executeWithMultipleLocks(sortedWalletIds, async () => {
-            // Валидация
+            
             const validation = PaymentValidator.validateAmount(amount);
             if (!validation.valid) {
                 throw ValidationErrorFactory.fromArray(validation.errors);
             }
 
-            // Проверяем баланс отправителя
+            
             const fromBalance = await this.getBalance(fromWalletId, false);
             if (fromBalance.available.main < amount) {
                 throw PaymentError.insufficientBalance(amount, fromBalance.available.main);
             }
 
-            // Списываем с отправителя
+            
             const fromWallet = await this.walletModel.updateBalance(fromWalletId, {
                 available: { main: -amount }
             });
 
-            // Начисляем получателю
+            
             const toWallet = await this.walletModel.updateBalance(toWalletId, {
                 available: { main: amount }
             });
 
-            // Создаем транзакции
+            
             const fromTransaction = await this.createTransaction({
                 walletId: fromWalletId,
                 type: PAYMENT_TYPES.TRANSFER,
@@ -356,7 +339,7 @@ class WalletService {
                 ...transactionData
             });
 
-            // Обновляем статистику
+            
             await Promise.all([
                 this.walletModel.updateStatistics(fromWalletId, {
                     type: PAYMENT_TYPES.TRANSFER,
@@ -368,13 +351,13 @@ class WalletService {
                 })
             ]);
 
-            // Инвалидируем кеш
+            
             await Promise.all([
                 this.invalidateCache(fromWalletId),
                 this.invalidateCache(toWalletId)
             ]);
 
-            // Логируем
+            
             await this.audit.log({
                 action: 'WALLET_TRANSFER',
                 category: 'PAYMENT',
@@ -397,9 +380,7 @@ class WalletService {
         });
     }
 
-    /**
-     * Блокировка средств
-     */
+    
     async holdFunds(walletId, amount, holdData) {
         return await this.executeWithLock(walletId, async () => {
             const wallet = await this.walletModel.holdFunds(walletId, {
@@ -411,10 +392,10 @@ class WalletService {
                 expiresAt: holdData.expiresAt
             });
 
-            // Инвалидируем кеш
+            
             await this.invalidateCache(walletId);
 
-            // Логируем
+            
             await this.audit.log({
                 action: 'WALLET_HOLD_FUNDS',
                 category: 'PAYMENT',
@@ -430,9 +411,7 @@ class WalletService {
         });
     }
 
-    /**
-     * Разблокировка средств
-     */
+    
     async releaseFunds(walletId, holdId, options = {}) {
         return await this.executeWithLock(walletId, async () => {
             const wallet = await this.walletModel.releaseFunds(
@@ -441,10 +420,10 @@ class WalletService {
                 options.releaseToAvailable !== false
             );
 
-            // Инвалидируем кеш
+            
             await this.invalidateCache(walletId);
 
-            // Логируем
+            
             await this.audit.log({
                 action: 'WALLET_RELEASE_FUNDS',
                 category: 'PAYMENT',
@@ -459,26 +438,24 @@ class WalletService {
         });
     }
 
-    /**
-     * Обработка комиссии за заказ
-     */
+    
     async processOrderCommission(orderId, orderAmount, masterId, stoId = null) {
         try {
-            // Определяем получателя и ставку комиссии
+            
             const recipient = stoId ?
-                { type: 'sto', id: stoId, rate: PAYMENT_FEES.PLATFORM_COMMISSION * 0.67 } : // СТО платит меньше
+                { type: 'sto', id: stoId, rate: PAYMENT_FEES.PLATFORM_COMMISSION * 0.67 } : 
                 { type: 'master', id: masterId, rate: PAYMENT_FEES.PLATFORM_COMMISSION };
 
             const commissionAmount = Math.round(orderAmount * recipient.rate);
 
-            // Получаем кошельки
+            
             const recipientWallet = recipient.type === 'sto' ?
                 await this.getStoWallet(recipient.id) :
                 await this.getUserWallet(recipient.id);
 
             const systemWallet = await this.getSystemWallet('commission');
 
-            // Переводим комиссию
+            
             const transfer = await this.transfer(
                 recipientWallet._id,
                 systemWallet._id,
@@ -511,17 +488,15 @@ class WalletService {
         }
     }
 
-    /**
-     * Начисление бонусов
-     */
+    
     async creditBonus(walletId, amount, bonusData) {
         return await this.executeWithLock(walletId, async () => {
-            // Обновляем бонусный баланс
+            
             const wallet = await this.walletModel.updateBalance(walletId, {
                 available: { bonus: amount }
             });
 
-            // Создаем транзакцию
+            
             const transaction = await this.createTransaction({
                 walletId,
                 type: PAYMENT_TYPES.BONUS,
@@ -532,7 +507,7 @@ class WalletService {
                 ...bonusData
             });
 
-            // Добавляем в историю бонусов
+            
             await this.walletModel.collection.updateOne(
                 { _id: new ObjectId(walletId) },
                 {
@@ -549,7 +524,7 @@ class WalletService {
                 }
             );
 
-            // Инвалидируем кеш
+            
             await this.invalidateCache(walletId);
 
             return {
@@ -559,28 +534,26 @@ class WalletService {
         });
     }
 
-    /**
-     * Использование бонусов
-     */
+    
     async useBonus(walletId, amount, orderId) {
         return await this.executeWithLock(walletId, async () => {
-            // Проверяем бонусный баланс
+            
             const balance = await this.getBalance(walletId, false);
             if (balance.available.bonus < amount) {
                 throw PaymentError.insufficientBonus(amount, balance.available.bonus);
             }
 
-            // Проверяем ограничения использования
+            
             const wallet = await this.walletModel.findById(walletId);
             const maxUsage = wallet.bonusProgram?.usage?.maxPercentagePerOrder || 50;
-            // TODO: Проверить процент от суммы заказа
+            
 
-            // Списываем бонусы
+            
             const updated = await this.walletModel.updateBalance(walletId, {
                 available: { bonus: -amount }
             });
 
-            // Создаем транзакцию
+            
             const transaction = await this.createTransaction({
                 walletId,
                 type: PAYMENT_TYPES.BONUS,
@@ -592,7 +565,7 @@ class WalletService {
                 description: `Bonus used for order ${orderId}`
             });
 
-            // Инвалидируем кеш
+            
             await this.invalidateCache(walletId);
 
             return {
@@ -603,27 +576,25 @@ class WalletService {
         });
     }
 
-    /**
-     * Начисление кэшбэка
-     */
+    
     async creditCashback(walletId, orderAmount, orderId) {
         return await this.executeWithLock(walletId, async () => {
-            // Получаем кошелек для определения уровня кэшбэка
+            
             const wallet = await this.walletModel.findById(walletId);
 
-            // Определяем процент кэшбэка
+            
             const cashbackLevel = wallet.cashbackProgram?.currentLevel || 'bronze';
             const cashbackPercentage = this.getCashbackPercentage(cashbackLevel);
             const cashbackAmount = Math.round(orderAmount * cashbackPercentage);
 
             if (cashbackAmount === 0) return null;
 
-            // Начисляем кэшбэк
+            
             const updated = await this.walletModel.updateBalance(walletId, {
                 available: { cashback: cashbackAmount }
             });
 
-            // Создаем транзакцию
+            
             const transaction = await this.createTransaction({
                 walletId,
                 type: PAYMENT_TYPES.CASHBACK,
@@ -639,7 +610,7 @@ class WalletService {
                 }
             });
 
-            // Обновляем историю кэшбэка
+            
             await this.walletModel.collection.updateOne(
                 { _id: new ObjectId(walletId) },
                 {
@@ -654,7 +625,7 @@ class WalletService {
                 }
             );
 
-            // Инвалидируем кеш
+            
             await this.invalidateCache(walletId);
 
             return {
@@ -666,12 +637,10 @@ class WalletService {
         });
     }
 
-    /**
-     * Обработка запроса на вывод средств
-     */
+    
     async requestWithdrawal(walletId, withdrawalData) {
         return await this.executeWithLock(walletId, async () => {
-            // Валидация данных вывода
+            
             const wallet = await this.walletModel.findById(walletId);
             const balance = wallet.balance.available.main;
 
@@ -680,13 +649,13 @@ class WalletService {
                 throw validation.error;
             }
 
-            // Проверяем лимиты
+            
             const limitCheck = await this.checkWithdrawalLimits(walletId, withdrawalData.amount);
             if (!limitCheck.allowed) {
                 throw PaymentError.limitExceeded(limitCheck.errors[0]);
             }
 
-            // Рассчитываем комиссию
+            
             const fee = calculateFee(
                 withdrawalData.amount,
                 PAYMENT_TYPES.WITHDRAWAL,
@@ -695,19 +664,19 @@ class WalletService {
 
             const totalAmount = withdrawalData.amount + fee;
 
-            // Проверяем достаточность средств с учетом комиссии
+            
             if (balance < totalAmount) {
                 throw PaymentError.insufficientBalance(totalAmount, balance);
             }
 
-            // Блокируем средства
+            
             const hold = await this.holdFunds(walletId, totalAmount, {
                 reason: HOLD_REASONS.WITHDRAWAL_REQUEST,
                 description: 'Withdrawal request',
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 часа
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) 
             });
 
-            // Создаем платеж на вывод
+            
             const payment = await this.paymentModel.create({
                 type: PAYMENT_TYPES.WITHDRAWAL,
                 status: PAYMENT_STATUS.PENDING,
@@ -732,10 +701,10 @@ class WalletService {
                 }
             });
 
-            // Обновляем использованные лимиты
+            
             await this.updateWithdrawalLimits(walletId, withdrawalData.amount);
 
-            // Логируем
+            
             await this.audit.logPayment(
                 'WITHDRAWAL_REQUESTED',
                 payment,
@@ -754,9 +723,7 @@ class WalletService {
         });
     }
 
-    /**
-     * Подтверждение вывода средств
-     */
+    
     async confirmWithdrawal(paymentId, providerData) {
         const payment = await this.paymentModel.findById(paymentId);
         if (!payment) {
@@ -766,18 +733,18 @@ class WalletService {
         const walletId = payment.references.walletIds.source;
 
         return await this.executeWithLock(walletId, async () => {
-            // Обновляем статус платежа
+            
             await this.paymentModel.updateStatus(
                 paymentId,
                 PAYMENT_STATUS.COMPLETED,
                 { providerData }
             );
 
-            // Конвертируем hold в списание
+            
             const holdId = payment.metadata.holdId;
             await this.releaseFunds(walletId, holdId, { releaseToAvailable: false });
 
-            // Создаем транзакцию
+            
             const transaction = await this.createTransaction({
                 walletId,
                 type: PAYMENT_TYPES.WITHDRAWAL,
@@ -789,16 +756,16 @@ class WalletService {
                 netAmount: payment.amount.final.value
             });
 
-            // Обновляем статистику
+            
             await this.walletModel.updateStatistics(walletId, {
                 type: PAYMENT_TYPES.WITHDRAWAL,
                 amount: payment.amount.original.value
             });
 
-            // Инвалидируем кеш
+            
             await this.invalidateCache(walletId);
 
-            // Логируем
+            
             await this.audit.logPayment(
                 'WITHDRAWAL_COMPLETED',
                 payment,
@@ -814,9 +781,7 @@ class WalletService {
         });
     }
 
-    /**
-     * Отмена вывода средств
-     */
+    
     async cancelWithdrawal(paymentId, reason) {
         const payment = await this.paymentModel.findById(paymentId);
         if (!payment) {
@@ -826,21 +791,21 @@ class WalletService {
         const walletId = payment.references.walletIds.source;
 
         return await this.executeWithLock(walletId, async () => {
-            // Обновляем статус платежа
+            
             await this.paymentModel.updateStatus(
                 paymentId,
                 PAYMENT_STATUS.CANCELLED,
                 { reason }
             );
 
-            // Разблокируем средства
+            
             const holdId = payment.metadata.holdId;
             await this.releaseFunds(walletId, holdId);
 
-            // Возвращаем лимиты
+            
             await this.returnWithdrawalLimits(walletId, payment.amount.original.value);
 
-            // Логируем
+            
             await this.audit.logPayment(
                 'WITHDRAWAL_CANCELLED',
                 payment,
@@ -856,9 +821,7 @@ class WalletService {
         });
     }
 
-    /**
-     * Получение истории транзакций
-     */
+    
     async getTransactionHistory(walletId, options = {}) {
         const {
             limit = 50,
@@ -900,16 +863,14 @@ class WalletService {
         };
     }
 
-    /**
-     * Получение статистики кошелька
-     */
+    
     async getWalletStatistics(walletId, period = 'month') {
         const wallet = await this.walletModel.findById(walletId);
         if (!wallet) {
             throw PaymentError.walletNotFound(walletId);
         }
 
-        // Определяем период
+        
         const now = new Date();
         let dateFrom;
 
@@ -930,7 +891,7 @@ class WalletService {
                 dateFrom = new Date(0);
         }
 
-        // Агрегация транзакций
+        
         const stats = await this.transactionModel.collection.aggregate([
             {
                 $match: {
@@ -966,7 +927,7 @@ class WalletService {
             }
         ]).toArray();
 
-        // Форматируем результат
+        
         const formattedStats = {
             period,
             dateFrom,
@@ -986,11 +947,9 @@ class WalletService {
         return formattedStats;
     }
 
-    /**
-     * Вспомогательные методы
-     */
+    
 
-    // Определение владельца кошелька
+    
     determineOwner(ownerData) {
         if (ownerData.userId) {
             return {
@@ -1012,7 +971,7 @@ class WalletService {
         throw new Error('Invalid owner data');
     }
 
-    // Получение настроек по умолчанию
+    
     getDefaultSettings(ownerData) {
         const settings = {
             limits: {},
@@ -1021,38 +980,38 @@ class WalletService {
             }
         };
 
-        // Настройки для мастеров
+        
         if (ownerData.role === USER_ROLES.MASTER) {
             settings.limits = {
                 withdrawal: {
-                    daily: { limit: 10000000 },    // 10M UZS
-                    monthly: { limit: 100000000 }   // 100M UZS
+                    daily: { limit: 10000000 },    
+                    monthly: { limit: 100000000 }   
                 }
             };
             settings.withdrawalSettings.fees = {
-                percentage: 0.01,  // 1%
+                percentage: 0.01,  
                 min: 1000,
                 max: 50000
             };
         }
 
-        // Настройки для СТО
+        
         if (ownerData.type === WALLET_TYPES.STO) {
             settings.limits = {
                 withdrawal: {
-                    daily: { limit: 50000000 },     // 50M UZS
-                    monthly: { limit: 1000000000 }  // 1B UZS
+                    daily: { limit: 50000000 },     
+                    monthly: { limit: 1000000000 }  
                 }
             };
             settings.withdrawalSettings.fees = {
-                fixed: 5000  // Фиксированная комиссия
+                fixed: 5000  
             };
         }
 
         return settings;
     }
 
-    // Получение системного кошелька
+    
     async getSystemWallet(systemId) {
         const cacheKey = `wallet:system:${systemId}`;
         const cached = await this.cache.get(cacheKey, { namespace: 'wallet' });
@@ -1072,13 +1031,13 @@ class WalletService {
 
         await this.cache.set(cacheKey, wallet, {
             namespace: 'wallet',
-            ttl: 86400 // 24 часа
+            ttl: 86400 
         });
 
         return wallet;
     }
 
-    // Создание транзакции
+    
     async createTransaction(transactionData) {
         const transaction = {
             _id: new ObjectId(),
@@ -1107,16 +1066,16 @@ class WalletService {
         return transaction;
     }
 
-    // Проверка лимитов на вывод
+    
     async checkWithdrawalLimits(walletId, amount) {
         return await this.walletModel.checkLimit(walletId, amount, 'withdrawal');
     }
 
-    // Обновление использованных лимитов
+    
     async updateWithdrawalLimits(walletId, amount) {
         await this.walletModel.updateLimitUsage(walletId, amount, 'withdrawal');
 
-        // Инвалидируем кеш лимитов
+        
         const dailyKey = this.config.redisKeys.dailyLimit(walletId, 'withdrawal');
         const monthlyKey = this.config.redisKeys.monthlyLimit(walletId, 'withdrawal');
 
@@ -1126,11 +1085,11 @@ class WalletService {
         ]);
     }
 
-    // Возврат лимитов при отмене
+    
     async returnWithdrawalLimits(walletId, amount) {
         await this.walletModel.updateLimitUsage(walletId, -amount, 'withdrawal');
 
-        // Инвалидируем кеш лимитов
+        
         const dailyKey = this.config.redisKeys.dailyLimit(walletId, 'withdrawal');
         const monthlyKey = this.config.redisKeys.monthlyLimit(walletId, 'withdrawal');
 
@@ -1140,19 +1099,19 @@ class WalletService {
         ]);
     }
 
-    // Получение процента кэшбэка
+    
     getCashbackPercentage(level) {
         const levels = {
-            bronze: 0.01,    // 1%
-            silver: 0.02,    // 2%
-            gold: 0.03,      // 3%
-            platinum: 0.05   // 5%
+            bronze: 0.01,    
+            silver: 0.02,    
+            gold: 0.03,      
+            platinum: 0.05   
         };
 
         return levels[level] || 0.01;
     }
 
-    // Получение времени обработки вывода
+    
     getEstimatedWithdrawalTime(method) {
         const times = {
             [PAYMENT_METHODS.CARD]: '5-15 минут',
@@ -1164,13 +1123,13 @@ class WalletService {
         return times[method] || '1-24 часа';
     }
 
-    // Выполнение операции с блокировкой
+    
     async executeWithLock(walletId, operation) {
         const lockKey = this.config.redisKeys.lock(walletId);
         const lockValue = `${Date.now()}_${Math.random()}`;
 
         try {
-            // Пытаемся получить блокировку
+            
             const acquired = await this.redis.set(
                 lockKey,
                 lockValue,
@@ -1183,11 +1142,11 @@ class WalletService {
                 throw PaymentError.walletLocked(walletId);
             }
 
-            // Выполняем операцию
+            
             return await operation();
 
         } finally {
-            // Освобождаем блокировку только если она наша
+            
             const currentValue = await this.redis.get(lockKey);
             if (currentValue === lockValue) {
                 await this.redis.del(lockKey);
@@ -1195,12 +1154,12 @@ class WalletService {
         }
     }
 
-    // Выполнение операции с множественными блокировками
+    
     async executeWithMultipleLocks(walletIds, operation) {
         const locks = [];
 
         try {
-            // Получаем все блокировки
+            
             for (const walletId of walletIds) {
                 const lockKey = this.config.redisKeys.lock(walletId);
                 const lockValue = `${Date.now()}_${Math.random()}`;
@@ -1220,11 +1179,11 @@ class WalletService {
                 locks.push({ key: lockKey, value: lockValue });
             }
 
-            // Выполняем операцию
+            
             return await operation();
 
         } finally {
-            // Освобождаем все блокировки
+            
             for (const lock of locks) {
                 const currentValue = await this.redis.get(lock.key);
                 if (currentValue === lock.value) {
@@ -1234,7 +1193,7 @@ class WalletService {
         }
     }
 
-    // Инвалидация кеша
+    
     async invalidateCache(walletId) {
         const keys = [
             this.config.redisKeys.balance(walletId),
@@ -1246,11 +1205,11 @@ class WalletService {
             keys.map(key => this.redis.del(key))
         );
 
-        // Инвалидируем кеш сервиса
+        
         await this.cache.delete(`wallet:*`, { pattern: true, namespace: 'wallet' });
     }
 
-    // Автоматическое освобождение истекших holds
+    
     async releaseExpiredHolds() {
         try {
             const released = await this.walletModel.releaseExpiredHolds();

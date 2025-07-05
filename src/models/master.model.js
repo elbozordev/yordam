@@ -1,61 +1,61 @@
-// src/models/master.model.js
+
 
 'use strict';
 
 const { ObjectId } = require('mongodb');
 const { SERVICE_TYPES } = require('../utils/constants/service-types');
 
-// Статусы мастера
+
 const MASTER_STATUS = {
-    PENDING_VERIFICATION: 'pending_verification', // Ожидает проверки
-    VERIFIED: 'verified',                  // Верифицирован
-    ACTIVE: 'active',                      // Активен (может принимать заказы)
-    INACTIVE: 'inactive',                  // Неактивен (временно)
-    SUSPENDED: 'suspended',                // Приостановлен администрацией
-    BLOCKED: 'blocked',                    // Заблокирован
-    REJECTED: 'rejected',                  // Отклонен при верификации
-    DELETED: 'deleted'                     // Удален
+    PENDING_VERIFICATION: 'pending_verification', 
+    VERIFIED: 'verified',                  
+    ACTIVE: 'active',                      
+    INACTIVE: 'inactive',                  
+    SUSPENDED: 'suspended',                
+    BLOCKED: 'blocked',                    
+    REJECTED: 'rejected',                  
+    DELETED: 'deleted'                     
 };
 
-// Типы мастеров
+
 const MASTER_TYPES = {
-    INDEPENDENT: 'independent',            // Независимый мастер
-    STO_EMPLOYEE: 'sto_employee',          // Сотрудник СТО
-    STO_PARTNER: 'sto_partner',            // Партнер СТО
-    FREELANCER: 'freelancer',              // Фрилансер
-    SPECIALIST: 'specialist'               // Узкий специалист
+    INDEPENDENT: 'independent',            
+    STO_EMPLOYEE: 'sto_employee',          
+    STO_PARTNER: 'sto_partner',            
+    FREELANCER: 'freelancer',              
+    SPECIALIST: 'specialist'               
 };
 
-// Уровни квалификации
+
 const SKILL_LEVELS = {
-    BEGINNER: 'beginner',                  // Начинающий (< 1 год)
-    JUNIOR: 'junior',                      // Младший (1-3 года)
-    MIDDLE: 'middle',                      // Средний (3-5 лет)
-    SENIOR: 'senior',                      // Старший (5-10 лет)
-    EXPERT: 'expert'                       // Эксперт (10+ лет)
+    BEGINNER: 'beginner',                  
+    JUNIOR: 'junior',                      
+    MIDDLE: 'middle',                      
+    SENIOR: 'senior',                      
+    EXPERT: 'expert'                       
 };
 
-// Статусы онлайн
+
 const ONLINE_STATUS = {
-    ONLINE: 'online',                      // Онлайн и готов к заказам
-    BUSY: 'busy',                          // Занят текущим заказом
-    BREAK: 'break',                        // На перерыве
-    OFFLINE: 'offline'                     // Офлайн
+    ONLINE: 'online',                      
+    BUSY: 'busy',                          
+    BREAK: 'break',                        
+    OFFLINE: 'offline'                     
 };
 
-// Схема мастера
+
 const masterSchema = {
     _id: ObjectId,
 
-    // Связь с пользователем
-    userId: ObjectId,                      // Обязательная связь с users
+    
+    userId: ObjectId,                      
 
-    // Основная информация
-    type: String,                          // Из MASTER_TYPES
-    status: String,                        // Из MASTER_STATUS
-    onlineStatus: String,                  // Из ONLINE_STATUS
+    
+    type: String,                          
+    status: String,                        
+    onlineStatus: String,                  
 
-    // Персональные данные (дублируются для быстрого доступа)
+    
     personal: {
         firstName: String,
         lastName: String,
@@ -66,41 +66,41 @@ const masterSchema = {
         birthDate: Date,
         gender: String,
 
-        // Фото профиля
+        
         avatar: {
             url: String,
             thumbnailUrl: String,
             verifiedAt: Date
         },
 
-        // Языки
+        
         languages: [{
-            code: String,                  // ru, uz, en
-            level: String                  // native, fluent, basic
+            code: String,                  
+            level: String                  
         }]
     },
 
-    // Профессиональная информация
+    
     professional: {
-        // Опыт работы
-        experienceYears: Number,           // Общий опыт в годах
-        experienceStartDate: Date,         // Начало карьеры
+        
+        experienceYears: Number,           
+        experienceStartDate: Date,         
 
-        // Уровень квалификации
-        skillLevel: String,                // Из SKILL_LEVELS
+        
+        skillLevel: String,                
 
-        // Специализации
+        
         specializations: [{
-            serviceType: String,           // Из SERVICE_TYPES
-            level: String,                 // Из SKILL_LEVELS
+            serviceType: String,           
+            level: String,                 
             experienceYears: Number,
 
-            // Подтверждение навыка
+            
             verified: Boolean,
             verifiedBy: ObjectId,
             verifiedAt: Date,
 
-            // Сертификаты по специализации
+            
             certificates: [{
                 name: String,
                 issuer: String,
@@ -110,12 +110,12 @@ const masterSchema = {
             }]
         }],
 
-        // Дополнительные навыки
-        additionalSkills: [String],        // Например: diagnostics, welding, painting
+        
+        additionalSkills: [String],        
 
-        // Образование
+        
         education: [{
-            type: String,                  // higher, vocational, courses
+            type: String,                  
             institution: String,
             speciality: String,
             degree: String,
@@ -128,7 +128,7 @@ const masterSchema = {
             }
         }],
 
-        // Опыт работы
+        
         workHistory: [{
             company: String,
             position: String,
@@ -136,7 +136,7 @@ const masterSchema = {
             endDate: Date,
             description: String,
 
-            // Рекомендации
+            
             reference: {
                 name: String,
                 position: String,
@@ -146,11 +146,11 @@ const masterSchema = {
         }]
     },
 
-    // Документы
+    
     documents: {
-        // Основные документы
+        
         identity: {
-            type: String,                  // passport, id_card
+            type: String,                  
             series: String,
             number: String,
             issuedBy: String,
@@ -158,9 +158,9 @@ const masterSchema = {
             expiryDate: Date,
 
             files: {
-                front: String,             // URL скана
+                front: String,             
                 back: String,
-                selfie: String            // Селфи с документом
+                selfie: String            
             },
 
             verified: Boolean,
@@ -168,24 +168,24 @@ const masterSchema = {
             verifiedBy: ObjectId
         },
 
-        // ИНН
+        
         tin: {
             number: String,
             fileUrl: String,
             verified: Boolean
         },
 
-        // Водительское удостоверение
+        
         driverLicense: {
             number: String,
-            categories: [String],          // A, B, C, D, E
+            categories: [String],          
             issuedDate: Date,
             expiryDate: Date,
             fileUrl: String,
             verified: Boolean
         },
 
-        // Медицинская книжка
+        
         medicalBook: {
             number: String,
             issuedDate: Date,
@@ -194,7 +194,7 @@ const masterSchema = {
             verified: Boolean
         },
 
-        // Криминальная проверка
+        
         criminalRecord: {
             checkedAt: Date,
             clearance: Boolean,
@@ -202,9 +202,9 @@ const masterSchema = {
             expiryDate: Date
         },
 
-        // Страховка
+        
         insurance: {
-            type: String,                  // liability, accident
+            type: String,                  
             policyNumber: String,
             company: String,
             coverage: Number,
@@ -213,12 +213,12 @@ const masterSchema = {
         }
     },
 
-    // Оборудование и инструменты
+    
     equipment: {
-        // Транспорт
+        
         vehicle: {
             hasVehicle: Boolean,
-            type: String,                  // car, motorcycle, bicycle
+            type: String,                  
             brand: String,
             model: String,
             year: Number,
@@ -227,35 +227,35 @@ const masterSchema = {
 
             photos: [{
                 url: String,
-                type: String               // exterior, interior, documents
+                type: String               
             }],
 
-            // Техосмотр
+            
             inspection: {
                 passedAt: Date,
                 expiryDate: Date,
                 fileUrl: String
             },
 
-            // Страховка
+            
             insurance: {
-                type: String,              // OSAGO, KASKO
+                type: String,              
                 expiryDate: Date,
                 fileUrl: String
             }
         },
 
-        // Инструменты
+        
         tools: [{
-            category: String,              // diagnostic, repair, measurement
+            category: String,              
             name: String,
             brand: String,
             model: String,
 
-            condition: String,             // new, good, fair, poor
+            condition: String,             
             purchaseDate: Date,
 
-            // Для спец оборудования
+            
             certification: {
                 required: Boolean,
                 certified: Boolean,
@@ -266,13 +266,13 @@ const masterSchema = {
             photos: [String]
         }],
 
-        // Специальное оборудование
+        
         specialEquipment: [{
-            type: String,                  // tow_truck, lift, generator
+            type: String,                  
             description: String,
             available: Boolean,
 
-            specifications: Object,        // Технические характеристики
+            specifications: Object,        
 
             rental: {
                 isRental: Boolean,
@@ -282,33 +282,33 @@ const masterSchema = {
         }]
     },
 
-    // Рабочие параметры
+    
     work: {
-        // График работы
+        
         schedule: {
-            type: String,                  // flexible, fixed, shift
+            type: String,                  
 
-            // Обычный график
+            
             regular: [{
-                dayOfWeek: Number,         // 0-6
+                dayOfWeek: Number,         
                 periods: [{
-                    startTime: String,     // "09:00"
-                    endTime: String,       // "18:00"
-                    type: String           // working, break
+                    startTime: String,     
+                    endTime: String,       
+                    type: String           
                 }],
                 enabled: Boolean
             }],
 
-            // Готовность к экстренным вызовам
+            
             emergency: {
                 available: Boolean,
-                nightWork: Boolean,        // Работа ночью
-                holidayWork: Boolean,      // Работа в праздники
+                nightWork: Boolean,        
+                holidayWork: Boolean,      
 
-                responseTime: Number       // Время отклика в минутах
+                responseTime: Number       
             },
 
-            // Отпуска и выходные
+            
             vacations: [{
                 startDate: Date,
                 endDate: Date,
@@ -317,26 +317,26 @@ const masterSchema = {
             }]
         },
 
-        // Зоны обслуживания
+        
         serviceAreas: [{
             name: String,
 
-            // Основная зона
+            
             primary: {
-                type: { type: String },    // Polygon
-                coordinates: [],           // GeoJSON
-                radius: Number             // Или радиус от базовой точки
+                type: { type: String },    
+                coordinates: [],           
+                radius: Number             
             },
 
-            // Расширенная зона (с доплатой)
+            
             extended: {
                 type: { type: String },
                 coordinates: [],
                 radius: Number,
-                surcharge: Number          // Процент доплаты
+                surcharge: Number          
             },
 
-            // Исключенные зоны
+            
             excluded: [{
                 type: { type: String },
                 coordinates: [],
@@ -347,7 +347,7 @@ const masterSchema = {
             priority: Number
         }],
 
-        // Базовая локация
+        
         baseLocation: {
             address: String,
             coordinates: {
@@ -355,38 +355,38 @@ const masterSchema = {
                 coordinates: [Number]
             },
 
-            // Готовность выезжать
+            
             mobility: {
-                maxDistance: Number,       // Максимальная дистанция
-                preferredDistance: Number, // Предпочтительная
+                maxDistance: Number,       
+                preferredDistance: Number, 
 
-                // Стоимость выезда
+                
                 travelCost: {
-                    included: Number,      // Включено в стоимость (км)
-                    perKm: Number         // Цена за км сверх
+                    included: Number,      
+                    perKm: Number         
                 }
             }
         },
 
-        // Предпочтения по заказам
+        
         orderPreferences: {
-            // Типы услуг
+            
             preferredServices: [String],
             excludedServices: [String],
 
-            // Стоимость заказа
+            
             minOrderAmount: Number,
             preferredOrderAmount: Number,
 
-            // Автомобили
+            
             preferredBrands: [String],
             excludedBrands: [String],
 
-            // Клиенты
+            
             corporateOnly: Boolean,
             regularCustomersOnly: Boolean,
 
-            // Автопринятие
+            
             autoAccept: {
                 enabled: Boolean,
                 services: [String],
@@ -395,16 +395,16 @@ const masterSchema = {
             }
         },
 
-        // Загруженность
+        
         capacity: {
             maxOrdersPerDay: Number,
-            maxActiveOrders: Number,       // Одновременно
+            maxActiveOrders: Number,       
 
             currentLoad: {
                 activeOrders: Number,
                 todayOrders: Number,
 
-                // Слоты времени
+                
                 busySlots: [{
                     startTime: Date,
                     endTime: Date,
@@ -414,52 +414,52 @@ const masterSchema = {
         }
     },
 
-    // Финансы
+    
     finance: {
-        // Тарифы и комиссии
+        
         rates: {
-            platformCommission: Number,    // Комиссия платформы (%)
+            platformCommission: Number,    
 
-            // Специальные ставки
+            
             specialRates: [{
                 serviceType: String,
                 commission: Number,
                 validUntil: Date
             }],
 
-            // Бонусные программы
+            
             bonuses: {
-                completionBonus: Number,   // За выполнение
-                ratingBonus: Number,       // За высокий рейтинг
-                rushHourBonus: Number,     // За час пик
-                weekendBonus: Number       // За выходные
+                completionBonus: Number,   
+                ratingBonus: Number,       
+                rushHourBonus: Number,     
+                weekendBonus: Number       
             }
         },
 
-        // Цены на услуги (переопределение базовых)
+        
         servicePrices: [{
             serviceType: String,
 
             basePrice: Number,
             minPrice: Number,
 
-            // Наценки
+            
             surcharges: {
-                night: Number,             // Процент
+                night: Number,             
                 weekend: Number,
                 holiday: Number,
                 urgency: Number
             },
 
-            // Скидки постоянным клиентам
+            
             loyaltyDiscount: Number
         }],
 
-        // Платежные реквизиты
+        
         paymentDetails: {
-            // Для выплат
+            
             withdrawal: {
-                method: String,            // card, bank, wallet
+                method: String,            
 
                 card: {
                     number: String,
@@ -475,12 +475,12 @@ const masterSchema = {
                 },
 
                 wallet: {
-                    provider: String,      // payme, click
+                    provider: String,      
                     account: String
                 }
             },
 
-            // НДС
+            
             tax: {
                 payer: Boolean,
                 rate: Number,
@@ -488,7 +488,7 @@ const masterSchema = {
             }
         },
 
-        // Финансовая статистика
+        
         stats: {
             totalEarned: Number,
             currentBalance: Number,
@@ -508,7 +508,7 @@ const masterSchema = {
                 commission: Number
             },
 
-            // История выплат
+            
             withdrawalHistory: [{
                 amount: Number,
                 method: String,
@@ -520,11 +520,11 @@ const masterSchema = {
         }
     },
 
-    // Рейтинг и репутация
+    
     rating: {
-        // Общий рейтинг
+        
         overall: {
-            score: Number,                 // 1-5
+            score: Number,                 
             count: Number,
 
             distribution: {
@@ -536,23 +536,23 @@ const masterSchema = {
             }
         },
 
-        // По категориям
+        
         categories: {
-            quality: Number,               // Качество работы
-            speed: Number,                 // Скорость
-            communication: Number,         // Общение
-            price: Number,                 // Адекватность цены
-            cleanliness: Number            // Чистота/аккуратность
+            quality: Number,               
+            speed: Number,                 
+            communication: Number,         
+            price: Number,                 
+            cleanliness: Number            
         },
 
-        // По типам услуг
+        
         byService: [{
             serviceType: String,
             avgRating: Number,
             count: Number
         }],
 
-        // Последние отзывы
+        
         recentReviews: [{
             orderId: ObjectId,
             rating: Number,
@@ -562,16 +562,16 @@ const masterSchema = {
             customerName: String,
             createdAt: Date,
 
-            // Ответ мастера
+            
             response: {
                 comment: String,
                 createdAt: Date
             }
         }],
 
-        // Достижения
+        
         achievements: [{
-            type: String,                  // top_rated, fast_response, etc
+            type: String,                  
             title: String,
             description: String,
             earnedAt: Date,
@@ -583,17 +583,17 @@ const masterSchema = {
             }
         }],
 
-        // Индекс надежности
+        
         reliability: {
-            score: Number,                 // 0-100
+            score: Number,                 
 
             factors: {
-                completionRate: Number,    // Процент выполненных
-                onTimeRate: Number,        // Вовремя прибыл
-                responseRate: Number,      // Отвечает на заказы
-                cancellationRate: Number,  // Процент отмен
+                completionRate: Number,    
+                onTimeRate: Number,        
+                responseRate: Number,      
+                cancellationRate: Number,  
 
-                // Веса факторов
+                
                 weights: {
                     completion: 0.4,
                     onTime: 0.3,
@@ -602,7 +602,7 @@ const masterSchema = {
                 }
             },
 
-            // Штрафные баллы
+            
             penalties: [{
                 reason: String,
                 points: Number,
@@ -612,16 +612,16 @@ const masterSchema = {
         }
     },
 
-    // Статистика работы
+    
     statistics: {
-        // Общая статистика
+        
         lifetime: {
             totalOrders: Number,
             completedOrders: Number,
             cancelledOrders: Number,
 
             totalEarnings: Number,
-            totalDistance: Number,         // км
+            totalDistance: Number,         
             totalHours: Number,
 
             joinedAt: Date,
@@ -629,9 +629,9 @@ const masterSchema = {
             lastOrderAt: Date
         },
 
-        // Текущий период
+        
         current: {
-            // Сегодня
+            
             today: {
                 orders: Number,
                 earnings: Number,
@@ -639,7 +639,7 @@ const masterSchema = {
                 onlineHours: Number
             },
 
-            // Эта неделя
+            
             thisWeek: {
                 orders: Number,
                 earnings: Number,
@@ -647,7 +647,7 @@ const masterSchema = {
                 avgResponseTime: Number
             },
 
-            // Этот месяц
+            
             thisMonth: {
                 orders: Number,
                 earnings: Number,
@@ -656,14 +656,14 @@ const masterSchema = {
             }
         },
 
-        // Производительность
+        
         performance: {
             avgOrdersPerDay: Number,
             avgEarningsPerOrder: Number,
-            avgCompletionTime: Number,     // минуты
-            avgResponseTime: Number,       // секунды
+            avgCompletionTime: Number,     
+            avgResponseTime: Number,       
 
-            // Пиковые показатели
+            
             bestDay: {
                 date: Date,
                 orders: Number,
@@ -677,7 +677,7 @@ const masterSchema = {
             }
         },
 
-        // По услугам
+        
         byService: [{
             serviceType: String,
             count: Number,
@@ -686,12 +686,12 @@ const masterSchema = {
             avgRating: Number
         }],
 
-        // По клиентам
+        
         customers: {
             total: Number,
-            regular: Number,               // 2+ заказов
+            regular: Number,               
 
-            favorites: [{                  // Топ клиентов
+            favorites: [{                  
                 customerId: ObjectId,
                 name: String,
                 ordersCount: Number,
@@ -699,27 +699,27 @@ const masterSchema = {
             }]
         },
 
-        // Тренды
+        
         trends: {
             monthlyOrders: [{
-                month: String,             // "2024-01"
+                month: String,             
                 orders: Number,
                 earnings: Number,
                 avgRating: Number
             }],
 
-            weeklyPattern: [Number],       // 7 элементов (пн-вс)
-            hourlyPattern: [Number]        // 24 элемента (0-23)
+            weeklyPattern: [Number],       
+            hourlyPattern: [Number]        
         }
     },
 
-    // Отношения
+    
     relationships: {
-        // СТО
+        
         sto: {
             current: {
                 stoId: ObjectId,
-                type: String,              // employee, partner
+                type: String,              
                 position: String,
                 joinedAt: Date,
 
@@ -735,31 +735,31 @@ const masterSchema = {
                 name: String,
                 startDate: Date,
                 endDate: Date,
-                reason: String             // Причина ухода
+                reason: String             
             }]
         },
 
-        // Команда (для групповой работы)
+        
         team: {
             isLeader: Boolean,
 
             members: [{
                 masterId: ObjectId,
                 name: String,
-                role: String,              // leader, member
+                role: String,              
                 specialization: String
             }],
 
-            // Распределение заработка
+            
             revenueSharing: {
-                type: String,              // equal, by_contribution, custom
+                type: String,              
                 rules: Object
             }
         },
 
-        // Менторство
+        
         mentorship: {
-            // Как ментор
+            
             mentees: [{
                 masterId: ObjectId,
                 name: String,
@@ -767,7 +767,7 @@ const masterSchema = {
                 status: String
             }],
 
-            // Как ученик
+            
             mentor: {
                 masterId: ObjectId,
                 name: String,
@@ -776,9 +776,9 @@ const masterSchema = {
         }
     },
 
-    // Настройки и предпочтения
+    
     preferences: {
-        // Уведомления
+        
         notifications: {
             push: {
                 newOrders: Boolean,
@@ -798,7 +798,7 @@ const masterSchema = {
                 news: Boolean
             },
 
-            // Звуковые уведомления
+            
             sound: {
                 enabled: Boolean,
                 volume: Number,
@@ -806,51 +806,51 @@ const masterSchema = {
             }
         },
 
-        // Интерфейс
+        
         interface: {
-            language: String,              // ru, uz, en
-            theme: String,                 // light, dark, auto
-            mapStyle: String,              // standard, satellite, terrain
+            language: String,              
+            theme: String,                 
+            mapStyle: String,              
 
-            // Виджеты главного экрана
+            
             dashboard: {
-                widgets: [String],         // earnings, rating, orders, etc
-                layout: String            // grid, list
+                widgets: [String],         
+                layout: String            
             }
         },
 
-        // Приватность
+        
         privacy: {
             showFullName: Boolean,
             showPhone: Boolean,
             showPhoto: Boolean,
 
-            // Для клиентов
-            shareLocation: String,         // always, during_order, never
+            
+            shareLocation: String,         
             allowDirectContact: Boolean
         },
 
-        // Автоматизация
+        
         automation: {
-            // Автоответы
+            
             autoResponses: [{
-                trigger: String,           // new_order, customer_message
+                trigger: String,           
                 message: String,
                 enabled: Boolean
             }],
 
-            // Автостатусы
+            
             autoStatus: {
-                goOfflineAfter: Number,    // Минут неактивности
-                breakAfterOrders: Number,  // Перерыв после N заказов
-                breakDuration: Number      // Длительность перерыва
+                goOfflineAfter: Number,    
+                breakAfterOrders: Number,  
+                breakDuration: Number      
             }
         }
     },
 
-    // Обучение и развитие
+    
     development: {
-        // Пройденные курсы
+        
         courses: [{
             name: String,
             provider: String,
@@ -860,20 +860,20 @@ const masterSchema = {
                 fileUrl: String
             },
 
-            // Результаты
+            
             score: Number,
             passed: Boolean
         }],
 
-        // Навыки для развития
+        
         skillsToImprove: [{
             skill: String,
             currentLevel: String,
             targetLevel: String,
-            progress: Number               // 0-100
+            progress: Number               
         }],
 
-        // План развития
+        
         developmentPlan: {
             goals: [{
                 title: String,
@@ -886,44 +886,44 @@ const masterSchema = {
         }
     },
 
-    // Безопасность
+    
     security: {
-        // Проверки
+        
         backgroundCheck: {
             completed: Boolean,
             date: Date,
-            result: String,                // passed, failed, pending
+            result: String,                
             expiresAt: Date
         },
 
-        // Инциденты
+        
         incidents: [{
-            type: String,                  // accident, complaint, violation
+            type: String,                  
             date: Date,
             description: String,
-            severity: String,              // low, medium, high
+            severity: String,              
             resolved: Boolean,
 
             outcome: {
-                action: String,            // warning, suspension, training
+                action: String,            
                 description: String
             }
         }],
 
-        // Блокировки
+        
         suspensions: [{
             reason: String,
             startDate: Date,
             endDate: Date,
             permanent: Boolean,
 
-            conditions: String             // Условия восстановления
+            conditions: String             
         }],
 
-        // Доверие
-        trustScore: Number,                // 0-100
+        
+        trustScore: Number,                
 
-        // Экстренные контакты
+        
         emergencyContacts: [{
             name: String,
             relation: String,
@@ -932,21 +932,21 @@ const masterSchema = {
         }]
     },
 
-    // Метрики качества
+    
     quality: {
-        // Показатели качества
+        
         metrics: {
-            // Точность диагностики
-            diagnosticAccuracy: Number,    // 0-100
+            
+            diagnosticAccuracy: Number,    
 
-            // Качество ремонта
+            
             repairQuality: {
-                firstTimeFixRate: Number,  // Процент с первого раза
-                comebackRate: Number,      // Процент возвратов
-                warrantyClaimRate: Number  // Процент по гарантии
+                firstTimeFixRate: Number,  
+                comebackRate: Number,      
+                warrantyClaimRate: Number  
             },
 
-            // Профессионализм
+            
             professionalism: {
                 appearanceScore: Number,
                 communicationScore: Number,
@@ -954,10 +954,10 @@ const masterSchema = {
             }
         },
 
-        // Контроль качества
+        
         qualityChecks: [{
             date: Date,
-            type: String,                  // random, scheduled, complaint
+            type: String,                  
             inspector: ObjectId,
 
             results: {
@@ -972,7 +972,7 @@ const masterSchema = {
             }
         }],
 
-        // Обратная связь от СТО
+        
         stoFeedback: [{
             stoId: ObjectId,
             date: Date,
@@ -986,9 +986,9 @@ const masterSchema = {
         }]
     },
 
-    // Текущее состояние
+    
     currentState: {
-        // Локация
+        
         location: {
             coordinates: {
                 type: { type: String, default: 'Point' },
@@ -996,14 +996,14 @@ const masterSchema = {
             },
 
             accuracy: Number,
-            heading: Number,               // Направление движения
-            speed: Number,                 // Скорость
+            heading: Number,               
+            speed: Number,                 
 
             updatedAt: Date,
-            source: String                 // gps, network, manual
+            source: String                 
         },
 
-        // Текущий заказ
+        
         activeOrder: {
             orderId: ObjectId,
             status: String,
@@ -1016,14 +1016,14 @@ const masterSchema = {
             }
         },
 
-        // Очередь заказов
+        
         orderQueue: [{
             orderId: ObjectId,
             scheduledTime: Date,
             estimatedDuration: Number
         }],
 
-        // Статус смены
+        
         shift: {
             startedAt: Date,
             scheduledEndAt: Date,
@@ -1031,7 +1031,7 @@ const masterSchema = {
             breaks: [{
                 startedAt: Date,
                 endedAt: Date,
-                type: String               // lunch, rest, prayer
+                type: String               
             }],
 
             summary: {
@@ -1043,17 +1043,17 @@ const masterSchema = {
         }
     },
 
-    // Геймификация
+    
     gamification: {
-        // Уровень
+        
         level: {
             current: Number,
             experience: Number,
             nextLevelExp: Number,
-            title: String                  // "Новичок", "Профи", "Эксперт"
+            title: String                  
         },
 
-        // Достижения
+        
         achievements: [{
             id: String,
             name: String,
@@ -1067,22 +1067,22 @@ const masterSchema = {
             },
 
             reward: {
-                type: String,              // bonus, badge, discount
+                type: String,              
                 value: Number
             },
 
             unlockedAt: Date
         }],
 
-        // Текущие задания
+        
         quests: [{
             id: String,
-            type: String,                  // daily, weekly, special
+            type: String,                  
             title: String,
             description: String,
 
             requirements: [{
-                type: String,              // orders, rating, distance
+                type: String,              
                 target: Number,
                 current: Number
             }],
@@ -1095,36 +1095,36 @@ const masterSchema = {
             expiresAt: Date
         }],
 
-        // Рейтинг среди мастеров
+        
         leaderboard: {
             overall: {
                 rank: Number,
                 totalMasters: Number,
-                percentile: Number         // Топ X%
+                percentile: Number         
             },
 
             byCategory: [{
-                category: String,          // earnings, orders, rating
+                category: String,          
                 rank: Number,
                 value: Number
             }],
 
-            // Среди коллег СТО
+            
             stoRank: {
                 rank: Number,
                 totalInSto: Number
             }
         },
 
-        // Награды
+        
         rewards: {
-            points: Number,                // Баллы лояльности
+            points: Number,                
 
             available: [{
                 id: String,
                 name: String,
                 cost: Number,
-                type: String               // discount, bonus, gift
+                type: String               
             }],
 
             redeemed: [{
@@ -1136,9 +1136,9 @@ const masterSchema = {
         }
     },
 
-    // Интеграции
+    
     integrations: {
-        // Мессенджеры
+        
         messengers: {
             telegram: {
                 chatId: String,
@@ -1153,27 +1153,27 @@ const masterSchema = {
             }
         },
 
-        // Внешние сервисы
+        
         external: {
-            // Трекинг
+            
             tracking: {
-                provider: String,          // google, yandex
+                provider: String,          
                 enabled: Boolean,
                 shareLink: String
             },
 
-            // Календарь
+            
             calendar: {
-                provider: String,          // google, outlook
+                provider: String,          
                 syncEnabled: Boolean,
                 calendarId: String
             }
         }
     },
 
-    // Логи и аудит
+    
     audit: {
-        // Последние действия
+        
         recentActions: [{
             action: String,
             details: Object,
@@ -1182,7 +1182,7 @@ const masterSchema = {
             timestamp: Date
         }],
 
-        // История изменений
+        
         changelog: [{
             field: String,
             oldValue: Object,
@@ -1193,42 +1193,42 @@ const masterSchema = {
         }]
     },
 
-    // Метаданные
+    
     metadata: {
-        source: String,                    // app, web, import, referral
+        source: String,                    
         referrer: {
-            type: String,                  // master, customer, sto, marketing
+            type: String,                  
             id: ObjectId,
             campaign: String
         },
 
-        tags: [String],                    // Для сегментации
-        flags: [String],                   // Специальные отметки
+        tags: [String],                    
+        flags: [String],                   
 
-        customFields: Object,              // Дополнительные поля
-        notes: String                      // Внутренние заметки
+        customFields: Object,              
+        notes: String                      
     },
 
-    // Временные метки
+    
     createdAt: Date,
     updatedAt: Date,
 
     verifiedAt: Date,
     lastActiveAt: Date,
-    deletedAt: Date                        // Для soft delete
+    deletedAt: Date                        
 };
 
-// Класс для работы с мастерами
+
 class MasterModel {
     constructor(db) {
         this.collection = db.collection('masters');
         this.setupIndexes();
     }
 
-    // Создание индексов
+    
     async setupIndexes() {
         try {
-            // Уникальные индексы
+            
             await this.collection.createIndex(
                 { userId: 1 },
                 {
@@ -1239,7 +1239,7 @@ class MasterModel {
                 }
             );
 
-            // Составные индексы для поиска
+            
             await this.collection.createIndex({
                 status: 1,
                 onlineStatus: 1,
@@ -1252,23 +1252,23 @@ class MasterModel {
                 onlineStatus: 1
             });
 
-            // Геопространственные индексы
+            
             await this.collection.createIndex({ 'currentState.location.coordinates': '2dsphere' });
             await this.collection.createIndex({ 'work.baseLocation.coordinates': '2dsphere' });
             await this.collection.createIndex({ 'work.serviceAreas.primary': '2dsphere' });
             await this.collection.createIndex({ 'work.serviceAreas.extended': '2dsphere' });
 
-            // Индексы для рейтинга и статистики
+            
             await this.collection.createIndex({ 'rating.overall.score': -1 });
             await this.collection.createIndex({ 'rating.reliability.score': -1 });
             await this.collection.createIndex({ 'statistics.lifetime.totalOrders': -1 });
             await this.collection.createIndex({ 'statistics.current.thisMonth.earnings': -1 });
 
-            // Индексы для связей
+            
             await this.collection.createIndex({ 'relationships.sto.current.stoId': 1 });
             await this.collection.createIndex({ 'relationships.team.members.masterId': 1 });
 
-            // Текстовый поиск
+            
             await this.collection.createIndex({
                 'personal.firstName': 'text',
                 'personal.lastName': 'text',
@@ -1276,13 +1276,13 @@ class MasterModel {
                 'professional.additionalSkills': 'text'
             });
 
-            // Индексы для финансов
+            
             await this.collection.createIndex({ 'finance.stats.currentBalance': -1 });
 
-            // TTL индекс
+            
             await this.collection.createIndex(
                 { deletedAt: 1 },
-                { expireAfterSeconds: 2592000 } // 30 дней
+                { expireAfterSeconds: 2592000 } 
             );
 
         } catch (error) {
@@ -1290,7 +1290,7 @@ class MasterModel {
         }
     }
 
-    // Создание нового мастера
+    
     async create(masterData) {
         const now = new Date();
 
@@ -1298,7 +1298,7 @@ class MasterModel {
             _id: new ObjectId(),
             ...masterData,
 
-            // Defaults
+            
             status: masterData.status || MASTER_STATUS.PENDING_VERIFICATION,
             onlineStatus: ONLINE_STATUS.OFFLINE,
 
@@ -1492,7 +1492,7 @@ class MasterModel {
         return { ...master, _id: result.insertedId };
     }
 
-    // Поиск мастера по ID
+    
     async findById(id) {
         return await this.collection.findOne({
             _id: new ObjectId(id),
@@ -1500,7 +1500,7 @@ class MasterModel {
         });
     }
 
-    // Поиск мастера по userId
+    
     async findByUserId(userId) {
         return await this.collection.findOne({
             userId: new ObjectId(userId),
@@ -1508,7 +1508,7 @@ class MasterModel {
         });
     }
 
-    // Поиск активных мастеров
+    
     async findActive(filters = {}) {
         const query = {
             status: MASTER_STATUS.ACTIVE,
@@ -1519,7 +1519,7 @@ class MasterModel {
         return await this.collection.find(query).toArray();
     }
 
-    // Поиск мастеров поблизости
+    
     async findNearby(location, radius = 5000, filters = {}) {
         const query = {
             status: MASTER_STATUS.ACTIVE,
@@ -1539,7 +1539,7 @@ class MasterModel {
         return await this.collection.find(query).toArray();
     }
 
-    // Поиск мастеров по услуге
+    
     async findByService(serviceType, location = null, options = {}) {
         const {
             radius = 10000,
@@ -1571,7 +1571,7 @@ class MasterModel {
         }
 
         if (location) {
-            // Используем aggregation для сортировки по расстоянию
+            
             return await this.collection.aggregate([
                 {
                     $geoNear: {
@@ -1587,7 +1587,7 @@ class MasterModel {
                 },
                 {
                     $addFields: {
-                        // Добавляем оценку для сортировки
+                        
                         matchScore: {
                             $add: [
                                 { $multiply: ['$rating.overall.score', 1000] },
@@ -1609,7 +1609,7 @@ class MasterModel {
             .toArray();
     }
 
-    // Обновление мастера
+    
     async update(id, updateData) {
         const result = await this.collection.findOneAndUpdate(
             { _id: new ObjectId(id) },
@@ -1625,19 +1625,19 @@ class MasterModel {
         return result;
     }
 
-    // Обновление онлайн статуса
+    
     async updateOnlineStatus(masterId, status) {
         const updateData = {
             onlineStatus: status,
             lastActiveAt: new Date()
         };
 
-        // Если переходит в онлайн, начинаем смену
+        
         if (status === ONLINE_STATUS.ONLINE) {
             updateData['currentState.shift.startedAt'] = new Date();
         }
 
-        // Если переходит в офлайн, завершаем смену
+        
         if (status === ONLINE_STATUS.OFFLINE) {
             const master = await this.findById(masterId);
             if (master?.currentState?.shift?.startedAt) {
@@ -1658,7 +1658,7 @@ class MasterModel {
         );
     }
 
-    // Обновление локации
+    
     async updateLocation(masterId, locationData) {
         const location = {
             coordinates: {
@@ -1684,7 +1684,7 @@ class MasterModel {
         );
     }
 
-    // Обновление статистики после заказа
+    
     async updateOrderStatistics(masterId, orderData) {
         const {
             status,
@@ -1728,7 +1728,7 @@ class MasterModel {
                 updateQuery.$inc['statistics.lifetime.totalHours'] = duration / 3600;
             }
 
-            // Обновление статистики по услугам
+            
             updateQuery.$push = {
                 'statistics.byService': {
                     $each: [{
@@ -1746,7 +1746,7 @@ class MasterModel {
             updateQuery.$inc['statistics.lifetime.cancelledOrders'] = 1;
         }
 
-        // Обновление паттернов
+        
         const hour = new Date().getHours();
         const dayOfWeek = new Date().getDay();
 
@@ -1764,7 +1764,7 @@ class MasterModel {
             { returnDocument: 'after' }
         );
 
-        // Пересчет средних показателей
+        
         if (result && status === 'completed') {
             await this.recalculateAverages(masterId);
         }
@@ -1772,7 +1772,7 @@ class MasterModel {
         return result;
     }
 
-    // Пересчет средних показателей
+    
     async recalculateAverages(masterId) {
         const master = await this.findById(masterId);
         if (!master) return;
@@ -1788,14 +1788,14 @@ class MasterModel {
                 (stats.completedOrders / stats.totalOrders) * 100;
         }
 
-        // Расчет среднего количества заказов в день
+        
         const daysSinceJoined = Math.max(1,
             (Date.now() - stats.joinedAt.getTime()) / (1000 * 60 * 60 * 24)
         );
         updateQuery.$set['statistics.performance.avgOrdersPerDay'] =
             stats.totalOrders / daysSinceJoined;
 
-        // Обновление индекса надежности
+        
         const reliability = this.calculateReliabilityScore(master);
         updateQuery.$set['rating.reliability.score'] = reliability.score;
         updateQuery.$set['rating.reliability.factors'] = reliability.factors;
@@ -1806,13 +1806,13 @@ class MasterModel {
         );
     }
 
-    // Расчет индекса надежности
+    
     calculateReliabilityScore(master) {
         const stats = master.statistics.lifetime;
         const factors = master.rating.reliability.factors;
         const weights = factors.weights;
 
-        // Расчет факторов
+        
         const completionRate = stats.totalOrders > 0
             ? (stats.completedOrders / stats.totalOrders) * 100
             : 100;
@@ -1821,18 +1821,18 @@ class MasterModel {
             ? (stats.cancelledOrders / stats.totalOrders) * 100
             : 0;
 
-        // Здесь должны быть реальные данные из заказов
+        
         const onTimeRate = factors.onTimeRate || 100;
         const responseRate = factors.responseRate || 100;
 
-        // Взвешенный расчет
+        
         const score =
             (completionRate * weights.completion) +
             (onTimeRate * weights.onTime) +
             (responseRate * weights.response) +
             ((100 - cancellationRate) * weights.cancellation);
 
-        // Учет штрафных баллов
+        
         const activePenalties = master.rating.reliability.penalties
             .filter(p => !p.expiresAt || p.expiresAt > new Date())
             .reduce((sum, p) => sum + p.points, 0);
@@ -1849,7 +1849,7 @@ class MasterModel {
         };
     }
 
-    // Обновление рейтинга
+    
     async updateRating(masterId, ratingData) {
         const {
             orderId,
@@ -1880,12 +1880,12 @@ class MasterModel {
                         customerName,
                         createdAt: new Date()
                     }],
-                    $slice: -20 // Храним последние 20 отзывов
+                    $slice: -20 
                 }
             }
         };
 
-        // Пересчет среднего рейтинга
+        
         const distribution = master.rating.overall.distribution;
         distribution[rating] = (distribution[rating] || 0) + 1;
 
@@ -1902,7 +1902,7 @@ class MasterModel {
             'statistics.current.thisMonth.avgRating': totalCount > 0 ? totalScore / totalCount : 0
         };
 
-        // Обновление рейтинга по категориям
+        
         if (categories) {
             Object.entries(categories).forEach(([category, score]) => {
                 if (master.rating.categories[category] !== undefined) {
@@ -1914,7 +1914,7 @@ class MasterModel {
             });
         }
 
-        // Обновление рейтинга по услуге
+        
         const serviceRatingIndex = master.rating.byService
             .findIndex(s => s.serviceType === serviceType);
 
@@ -1942,7 +1942,7 @@ class MasterModel {
         );
     }
 
-    // Добавление достижения
+    
     async addAchievement(masterId, achievement) {
         const newAchievement = {
             ...achievement,
@@ -1960,7 +1960,7 @@ class MasterModel {
         );
     }
 
-    // Обновление финансов
+    
     async updateFinance(masterId, transaction) {
         const updateQuery = {
             $inc: {},
@@ -2005,7 +2005,7 @@ class MasterModel {
         );
     }
 
-    // Верификация мастера
+    
     async verify(masterId, verificationData) {
         const verification = {
             status: MASTER_STATUS.VERIFIED,
@@ -2018,7 +2018,7 @@ class MasterModel {
                 completed: true,
                 date: new Date(),
                 result: 'passed',
-                expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 год
+                expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) 
             }
         };
 
@@ -2035,7 +2035,7 @@ class MasterModel {
         );
     }
 
-    // Добавление инцидента
+    
     async addIncident(masterId, incident) {
         const newIncident = {
             ...incident,
@@ -2043,7 +2043,7 @@ class MasterModel {
             resolved: false
         };
 
-        // Расчет влияния на trust score
+        
         const penaltyPoints = {
             low: 5,
             medium: 10,
@@ -2059,13 +2059,13 @@ class MasterModel {
             $set: { updatedAt: new Date() }
         };
 
-        // Добавление штрафа в надежность
+        
         if (incident.severity !== 'low') {
             updateQuery.$push['rating.reliability.penalties'] = {
                 reason: incident.type,
                 points: penaltyPoints[incident.severity],
                 date: new Date(),
-                expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90 дней
+                expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) 
             };
         }
 
@@ -2076,7 +2076,7 @@ class MasterModel {
         );
     }
 
-    // Обновление прогресса квеста
+    
     async updateQuestProgress(masterId, questId, progress) {
         const master = await this.findById(masterId);
         if (!master) return null;
@@ -2089,7 +2089,7 @@ class MasterModel {
         const quest = master.gamification.quests[questIndex];
         const updateQuery = { $set: {} };
 
-        // Обновление прогресса по требованиям
+        
         progress.forEach(p => {
             const reqIndex = quest.requirements
                 .findIndex(r => r.type === p.type);
@@ -2099,7 +2099,7 @@ class MasterModel {
             }
         });
 
-        // Проверка выполнения квеста
+        
         const allCompleted = quest.requirements
             .every(r => r.current >= r.target);
 
@@ -2121,7 +2121,7 @@ class MasterModel {
         );
     }
 
-    // Поиск топ мастеров
+    
     async getTopMasters(limit = 10, criteria = 'rating', filters = {}) {
         const sortOptions = {
             rating: { 'rating.overall.score': -1 },
@@ -2142,7 +2142,7 @@ class MasterModel {
             .toArray();
     }
 
-    // Получение мастеров для заказа
+    
     async findForOrder(orderData) {
         const {
             serviceType,
@@ -2153,7 +2153,7 @@ class MasterModel {
             excludedMasterIds = []
         } = orderData;
 
-        // Если указан предпочтительный мастер
+        
         if (preferredMasterId) {
             const preferredMaster = await this.findById(preferredMasterId);
             if (preferredMaster &&
@@ -2163,7 +2163,7 @@ class MasterModel {
             }
         }
 
-        // Базовые фильтры
+        
         const filters = {
             _id: { $nin: excludedMasterIds.map(id => new ObjectId(id)) },
             'professional.specializations.serviceType': serviceType,
@@ -2172,7 +2172,7 @@ class MasterModel {
             }
         };
 
-        // Фильтр по марке автомобиля
+        
         if (vehicleBrand) {
             filters.$or = [
                 { 'work.orderPreferences.preferredBrands': vehicleBrand },
@@ -2183,7 +2183,7 @@ class MasterModel {
             ];
         }
 
-        // Поиск с учетом расстояния и зон обслуживания
+        
         const pipeline = [
             {
                 $geoNear: {
@@ -2198,13 +2198,13 @@ class MasterModel {
                         ...filters
                     },
                     spherical: true,
-                    maxDistance: 30000 // 30км максимум
+                    maxDistance: 30000 
                 }
             },
             {
                 $match: {
                     $or: [
-                        // В основной зоне обслуживания
+                        
                         {
                             'work.serviceAreas.primary': {
                                 $geoIntersects: {
@@ -2215,7 +2215,7 @@ class MasterModel {
                                 }
                             }
                         },
-                        // В расширенной зоне
+                        
                         {
                             'work.serviceAreas.extended': {
                                 $geoIntersects: {
@@ -2226,7 +2226,7 @@ class MasterModel {
                                 }
                             }
                         },
-                        // Или в пределах мобильности
+                        
                         {
                             distance: { $lte: { $ifNull: ['$work.baseLocation.mobility.maxDistance', 10000] } }
                         }
@@ -2235,16 +2235,16 @@ class MasterModel {
             },
             {
                 $addFields: {
-                    // Расчет оценки для сортировки
+                    
                     matchScore: {
                         $add: [
-                            // Рейтинг (0-5000)
+                            
                             { $multiply: ['$rating.overall.score', 1000] },
 
-                            // Надежность (0-1000)
+                            
                             { $multiply: ['$rating.reliability.score', 10] },
 
-                            // Близость (0-100)
+                            
                             { $multiply: [
                                     { $divide: [
                                             { $subtract: [30000, '$distance'] },
@@ -2253,7 +2253,7 @@ class MasterModel {
                                     1
                                 ]},
 
-                            // Опыт с услугой (0-500)
+                            
                             {
                                 $multiply: [
                                     {
@@ -2276,7 +2276,7 @@ class MasterModel {
                                 ]
                             },
 
-                            // Бонус за предпочтительную марку (0-200)
+                            
                             {
                                 $cond: [
                                     { $in: [vehicleBrand, '$work.orderPreferences.preferredBrands'] },
@@ -2285,7 +2285,7 @@ class MasterModel {
                                 ]
                             },
 
-                            // Штраф за высокую загрузку (-200-0)
+                            
                             {
                                 $multiply: [
                                     '$work.capacity.currentLoad.activeOrders',
@@ -2295,7 +2295,7 @@ class MasterModel {
                         ]
                     },
 
-                    // Проверка автоакцепта
+                    
                     willAutoAccept: {
                         $and: [
                             '$work.orderPreferences.autoAccept.enabled',
@@ -2312,7 +2312,7 @@ class MasterModel {
         return await this.collection.aggregate(pipeline).toArray();
     }
 
-    // Проверка доступности мастера
+    
     async checkAvailability(masterId, dateTime = new Date()) {
         const master = await this.findById(masterId);
         if (!master) {
@@ -2331,13 +2331,13 @@ class MasterModel {
             return { available: false, reason: 'master_on_break' };
         }
 
-        // Проверка загруженности
+        
         const currentLoad = master.work.capacity.currentLoad;
         if (currentLoad.activeOrders >= (master.work.capacity.maxActiveOrders || 3)) {
             return { available: false, reason: 'master_busy' };
         }
 
-        // Проверка расписания
+        
         const dayOfWeek = dateTime.getDay();
         const timeStr = dateTime.toTimeString().slice(0, 5);
 
@@ -2359,7 +2359,7 @@ class MasterModel {
             return { available: false, reason: 'outside_working_hours' };
         }
 
-        // Проверка отпусков
+        
         const isOnVacation = master.work.schedule.vacations.some(vacation => {
             return vacation.approved &&
                 dateTime >= vacation.startDate &&
@@ -2370,7 +2370,7 @@ class MasterModel {
             return { available: false, reason: 'on_vacation' };
         }
 
-        // Проверка слотов времени
+        
         const busySlot = currentLoad.busySlots.find(slot => {
             return dateTime >= slot.startTime && dateTime <= slot.endTime;
         });
@@ -2386,7 +2386,7 @@ class MasterModel {
         return { available: true };
     }
 
-    // Назначение заказа мастеру
+    
     async assignOrder(masterId, orderData) {
         const {
             orderId,
@@ -2425,7 +2425,7 @@ class MasterModel {
         );
     }
 
-    // Завершение заказа
+    
     async completeOrder(masterId, orderId) {
         return await this.collection.findOneAndUpdate(
             { _id: new ObjectId(masterId) },
@@ -2447,7 +2447,7 @@ class MasterModel {
         );
     }
 
-    // Мягкое удаление
+    
     async softDelete(masterId) {
         return await this.collection.updateOne(
             { _id: new ObjectId(masterId) },
@@ -2463,7 +2463,7 @@ class MasterModel {
     }
 }
 
-// Экспортируем
+
 module.exports = {
     MasterModel,
     MASTER_STATUS,

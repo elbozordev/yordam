@@ -1,4 +1,4 @@
-// src/utils/constants/notification-types.js
+
 
 'use strict';
 
@@ -6,130 +6,130 @@ const { ORDER_STATUS } = require('./order-status');
 const { PAYMENT_STATUS } = require('./payment-status');
 const { USER_ROLES } = require('./user-roles');
 
-// Основные типы уведомлений
+
 const NOTIFICATION_TYPES = {
-    // === Уведомления о заказах ===
-    // Для клиента
-    ORDER_CREATED: 'order_created',                     // Заказ создан
-    ORDER_SEARCHING_MASTER: 'order_searching_master',   // Идет поиск мастера
-    ORDER_MASTER_ASSIGNED: 'order_master_assigned',     // Мастер назначен
-    ORDER_MASTER_ACCEPTED: 'order_master_accepted',     // Мастер принял заказ
-    ORDER_MASTER_EN_ROUTE: 'order_master_en_route',     // Мастер выехал
-    ORDER_MASTER_ARRIVED: 'order_master_arrived',       // Мастер прибыл
-    ORDER_WORK_STARTED: 'order_work_started',           // Работа началась
-    ORDER_COMPLETED: 'order_completed',                 // Заказ завершен
-    ORDER_CANCELLED: 'order_cancelled',                 // Заказ отменен
-    ORDER_FAILED: 'order_failed',                       // Заказ не выполнен
-    ORDER_EXPIRED: 'order_expired',                     // Истек срок поиска
-    ORDER_PRICE_UPDATED: 'order_price_updated',         // Цена обновлена
+    
+    
+    ORDER_CREATED: 'order_created',                     
+    ORDER_SEARCHING_MASTER: 'order_searching_master',   
+    ORDER_MASTER_ASSIGNED: 'order_master_assigned',     
+    ORDER_MASTER_ACCEPTED: 'order_master_accepted',     
+    ORDER_MASTER_EN_ROUTE: 'order_master_en_route',     
+    ORDER_MASTER_ARRIVED: 'order_master_arrived',       
+    ORDER_WORK_STARTED: 'order_work_started',           
+    ORDER_COMPLETED: 'order_completed',                 
+    ORDER_CANCELLED: 'order_cancelled',                 
+    ORDER_FAILED: 'order_failed',                       
+    ORDER_EXPIRED: 'order_expired',                     
+    ORDER_PRICE_UPDATED: 'order_price_updated',         
 
-    // Для мастера
-    NEW_ORDER_AVAILABLE: 'new_order_available',         // Доступен новый заказ
-    ORDER_ASSIGNED_TO_YOU: 'order_assigned_to_you',     // Заказ назначен вам
-    ORDER_ACCEPTANCE_REMINDER: 'order_acceptance_reminder', // Напоминание принять заказ
-    ORDER_CANCELLED_BY_CLIENT: 'order_cancelled_by_client', // Клиент отменил
-    ORDER_REASSIGNED: 'order_reassigned',               // Заказ переназначен
+    
+    NEW_ORDER_AVAILABLE: 'new_order_available',         
+    ORDER_ASSIGNED_TO_YOU: 'order_assigned_to_you',     
+    ORDER_ACCEPTANCE_REMINDER: 'order_acceptance_reminder', 
+    ORDER_CANCELLED_BY_CLIENT: 'order_cancelled_by_client', 
+    ORDER_REASSIGNED: 'order_reassigned',               
 
-    // === Уведомления о платежах ===
-    PAYMENT_PENDING: 'payment_pending',                 // Ожидает оплаты
-    PAYMENT_PROCESSING: 'payment_processing',           // Платеж обрабатывается
-    PAYMENT_COMPLETED: 'payment_completed',             // Оплата прошла
-    PAYMENT_FAILED: 'payment_failed',                   // Ошибка оплаты
-    PAYMENT_REFUNDED: 'payment_refunded',               // Возврат средств
-    WITHDRAWAL_REQUESTED: 'withdrawal_requested',        // Запрос на вывод
-    WITHDRAWAL_COMPLETED: 'withdrawal_completed',        // Вывод завершен
-    WITHDRAWAL_FAILED: 'withdrawal_failed',              // Ошибка вывода
+    
+    PAYMENT_PENDING: 'payment_pending',                 
+    PAYMENT_PROCESSING: 'payment_processing',           
+    PAYMENT_COMPLETED: 'payment_completed',             
+    PAYMENT_FAILED: 'payment_failed',                   
+    PAYMENT_REFUNDED: 'payment_refunded',               
+    WITHDRAWAL_REQUESTED: 'withdrawal_requested',        
+    WITHDRAWAL_COMPLETED: 'withdrawal_completed',        
+    WITHDRAWAL_FAILED: 'withdrawal_failed',              
 
-    // === Уведомления о рейтингах и отзывах ===
-    RATING_REQUEST: 'rating_request',                   // Просьба оценить
-    RATING_RECEIVED: 'rating_received',                 // Получена оценка
-    REVIEW_RECEIVED: 'review_received',                  // Получен отзыв
-    REVIEW_RESPONSE: 'review_response',                  // Ответ на отзыв
+    
+    RATING_REQUEST: 'rating_request',                   
+    RATING_RECEIVED: 'rating_received',                 
+    REVIEW_RECEIVED: 'review_received',                  
+    REVIEW_RESPONSE: 'review_response',                  
 
-    // === Уведомления о документах ===
+    
     DOCUMENTS_VERIFICATION_PENDING: 'documents_verification_pending',
     DOCUMENTS_VERIFIED: 'documents_verified',
     DOCUMENTS_REJECTED: 'documents_rejected',
     DOCUMENTS_EXPIRING: 'documents_expiring',
 
-    // === Системные уведомления ===
-    ACCOUNT_CREATED: 'account_created',                 // Аккаунт создан
-    ACCOUNT_VERIFIED: 'account_verified',               // Аккаунт верифицирован
-    ACCOUNT_BLOCKED: 'account_blocked',                 // Аккаунт заблокирован
-    ACCOUNT_UNBLOCKED: 'account_unblocked',             // Аккаунт разблокирован
-    PASSWORD_RESET: 'password_reset',                   // Сброс пароля
-    OTP_CODE: 'otp_code',                              // OTP код
+    
+    ACCOUNT_CREATED: 'account_created',                 
+    ACCOUNT_VERIFIED: 'account_verified',               
+    ACCOUNT_BLOCKED: 'account_blocked',                 
+    ACCOUNT_UNBLOCKED: 'account_unblocked',             
+    PASSWORD_RESET: 'password_reset',                   
+    OTP_CODE: 'otp_code',                              
 
-    // === Промо и маркетинг ===
-    PROMO_AVAILABLE: 'promo_available',                 // Доступна акция
-    BONUS_RECEIVED: 'bonus_received',                   // Получен бонус
-    REFERRAL_BONUS: 'referral_bonus',                   // Реферальный бонус
-    LOYALTY_REWARD: 'loyalty_reward',                   // Награда лояльности
+    
+    PROMO_AVAILABLE: 'promo_available',                 
+    BONUS_RECEIVED: 'bonus_received',                   
+    REFERRAL_BONUS: 'referral_bonus',                   
+    LOYALTY_REWARD: 'loyalty_reward',                   
 
-    // === Уведомления для СТО ===
-    STO_NEW_ORDER: 'sto_new_order',                     // Новый заказ для СТО
-    STO_DAILY_REPORT: 'sto_daily_report',               // Дневной отчет
-    STO_WEEKLY_REPORT: 'sto_weekly_report',             // Недельный отчет
-    STO_LOW_RATING_ALERT: 'sto_low_rating_alert',       // Низкий рейтинг
-    STO_MASTER_OFFLINE: 'sto_master_offline',           // Мастер офлайн
+    
+    STO_NEW_ORDER: 'sto_new_order',                     
+    STO_DAILY_REPORT: 'sto_daily_report',               
+    STO_WEEKLY_REPORT: 'sto_weekly_report',             
+    STO_LOW_RATING_ALERT: 'sto_low_rating_alert',       
+    STO_MASTER_OFFLINE: 'sto_master_offline',           
 
-    // === Критические уведомления ===
-    SLA_VIOLATION: 'sla_violation',                     // Нарушение SLA
-    FRAUD_DETECTED: 'fraud_detected',                   // Обнаружено мошенничество
-    SYSTEM_MAINTENANCE: 'system_maintenance',           // Техработы
-    EMERGENCY_ALERT: 'emergency_alert',                 // Экстренное оповещение
+    
+    SLA_VIOLATION: 'sla_violation',                     
+    FRAUD_DETECTED: 'fraud_detected',                   
+    SYSTEM_MAINTENANCE: 'system_maintenance',           
+    EMERGENCY_ALERT: 'emergency_alert',                 
 
-    // === Коммуникации ===
-    CHAT_MESSAGE: 'chat_message',                       // Новое сообщение
-    SUPPORT_RESPONSE: 'support_response',               // Ответ поддержки
-    ANNOUNCEMENT: 'announcement'                        // Объявление
+    
+    CHAT_MESSAGE: 'chat_message',                       
+    SUPPORT_RESPONSE: 'support_response',               
+    ANNOUNCEMENT: 'announcement'                        
 };
 
-// Категории уведомлений
+
 const NOTIFICATION_CATEGORIES = {
-    ORDER: 'order',                    // Заказы
-    PAYMENT: 'payment',                // Платежи
-    ACCOUNT: 'account',                // Аккаунт
-    RATING: 'rating',                  // Рейтинги
-    PROMO: 'promo',                    // Промо
-    SYSTEM: 'system',                  // Системные
-    CRITICAL: 'critical',              // Критические
-    COMMUNICATION: 'communication',     // Коммуникации
-    REPORT: 'report'                   // Отчеты
+    ORDER: 'order',                    
+    PAYMENT: 'payment',                
+    ACCOUNT: 'account',                
+    RATING: 'rating',                  
+    PROMO: 'promo',                    
+    SYSTEM: 'system',                  
+    CRITICAL: 'critical',              
+    COMMUNICATION: 'communication',     
+    REPORT: 'report'                   
 };
 
-// Приоритеты уведомлений
+
 const NOTIFICATION_PRIORITY = {
-    CRITICAL: 'critical',              // Критический (всегда доставляется)
-    HIGH: 'high',                      // Высокий
-    NORMAL: 'normal',                  // Обычный
-    LOW: 'low',                        // Низкий
-    INFO: 'info'                       // Информационный
+    CRITICAL: 'critical',              
+    HIGH: 'high',                      
+    NORMAL: 'normal',                  
+    LOW: 'low',                        
+    INFO: 'info'                       
 };
 
-// Каналы доставки
+
 const NOTIFICATION_CHANNELS = {
-    PUSH: 'push',                      // Push-уведомления
-    SMS: 'sms',                        // SMS
-    EMAIL: 'email',                    // Email
-    IN_APP: 'in_app',                  // В приложении
-    WHATSAPP: 'whatsapp',              // WhatsApp
-    TELEGRAM: 'telegram'               // Telegram
+    PUSH: 'push',                      
+    SMS: 'sms',                        
+    EMAIL: 'email',                    
+    IN_APP: 'in_app',                  
+    WHATSAPP: 'whatsapp',              
+    TELEGRAM: 'telegram'               
 };
 
-// Время жизни уведомлений (TTL)
+
 const NOTIFICATION_TTL = {
-    INSTANT: 0,                        // Мгновенное
-    MINUTE_5: 5 * 60,                  // 5 минут
-    MINUTE_30: 30 * 60,                // 30 минут
-    HOUR_1: 60 * 60,                   // 1 час
-    HOUR_24: 24 * 60 * 60,             // 24 часа
-    WEEK_1: 7 * 24 * 60 * 60           // 1 неделя
+    INSTANT: 0,                        
+    MINUTE_5: 5 * 60,                  
+    MINUTE_30: 30 * 60,                
+    HOUR_1: 60 * 60,                   
+    HOUR_24: 24 * 60 * 60,             
+    WEEK_1: 7 * 24 * 60 * 60           
 };
 
-// Метаданные типов уведомлений
+
 const NOTIFICATION_METADATA = {
-    // === Уведомления о заказах для клиента ===
+    
     [NOTIFICATION_TYPES.ORDER_CREATED]: {
         category: NOTIFICATION_CATEGORIES.ORDER,
         priority: NOTIFICATION_PRIORITY.HIGH,
@@ -252,11 +252,11 @@ const NOTIFICATION_METADATA = {
             }
         ],
 
-        autoCancel: 86400, // Автоотмена через 24 часа
+        autoCancel: 86400, 
         requiresInteraction: false
     },
 
-    // === Уведомления для мастеров ===
+    
     [NOTIFICATION_TYPES.NEW_ORDER_AVAILABLE]: {
         category: NOTIFICATION_CATEGORIES.ORDER,
         priority: NOTIFICATION_PRIORITY.CRITICAL,
@@ -297,9 +297,9 @@ const NOTIFICATION_METADATA = {
         vibration: [200, 100, 200],
         badge: true,
         persistent: true,
-        autoExpire: 30, // Автоистечение через 30 секунд
+        autoExpire: 30, 
 
-        // Настройки для мастеров
+        
         masterSettings: {
             minDistance: 0,
             maxDistance: 20000,
@@ -335,7 +335,7 @@ const NOTIFICATION_METADATA = {
         responseTimeout: 30
     },
 
-    // === Уведомления о платежах ===
+    
     [NOTIFICATION_TYPES.PAYMENT_COMPLETED]: {
         category: NOTIFICATION_CATEGORIES.PAYMENT,
         priority: NOTIFICATION_PRIORITY.HIGH,
@@ -399,7 +399,7 @@ const NOTIFICATION_METADATA = {
         }
     },
 
-    // === Системные уведомления ===
+    
     [NOTIFICATION_TYPES.OTP_CODE]: {
         category: NOTIFICATION_CATEGORIES.ACCOUNT,
         priority: NOTIFICATION_PRIORITY.CRITICAL,
@@ -449,7 +449,7 @@ const NOTIFICATION_METADATA = {
         }
     },
 
-    // === Критические уведомления ===
+    
     [NOTIFICATION_TYPES.SLA_VIOLATION]: {
         category: NOTIFICATION_CATEGORIES.CRITICAL,
         priority: NOTIFICATION_PRIORITY.CRITICAL,
@@ -482,7 +482,7 @@ const NOTIFICATION_METADATA = {
         requiresAcknowledgment: true
     },
 
-    // === Отчеты для СТО ===
+    
     [NOTIFICATION_TYPES.STO_DAILY_REPORT]: {
         category: NOTIFICATION_CATEGORIES.REPORT,
         priority: NOTIFICATION_PRIORITY.NORMAL,
@@ -522,7 +522,7 @@ const NOTIFICATION_METADATA = {
     }
 };
 
-// Группы уведомлений по получателям
+
 const NOTIFICATION_GROUPS = {
     CLIENT: [
         NOTIFICATION_TYPES.ORDER_CREATED,
@@ -565,7 +565,7 @@ const NOTIFICATION_GROUPS = {
     ]
 };
 
-// Настройки каналов по умолчанию для ролей
+
 const DEFAULT_CHANNEL_SETTINGS = {
     [USER_ROLES.CLIENT]: {
         [NOTIFICATION_CHANNELS.PUSH]: true,
@@ -597,7 +597,7 @@ const DEFAULT_CHANNEL_SETTINGS = {
     }
 };
 
-// Mapping статусов заказа к типам уведомлений
+
 const ORDER_STATUS_NOTIFICATIONS = {
     [ORDER_STATUS.NEW]: [NOTIFICATION_TYPES.ORDER_CREATED],
     [ORDER_STATUS.SEARCHING]: [NOTIFICATION_TYPES.ORDER_SEARCHING_MASTER],
@@ -612,7 +612,7 @@ const ORDER_STATUS_NOTIFICATIONS = {
     [ORDER_STATUS.EXPIRED]: [NOTIFICATION_TYPES.ORDER_EXPIRED]
 };
 
-// Mapping статусов платежа к типам уведомлений
+
 const PAYMENT_STATUS_NOTIFICATIONS = {
     [PAYMENT_STATUS.PENDING]: [NOTIFICATION_TYPES.PAYMENT_PENDING],
     [PAYMENT_STATUS.PROCESSING]: [NOTIFICATION_TYPES.PAYMENT_PROCESSING],
@@ -621,18 +621,14 @@ const PAYMENT_STATUS_NOTIFICATIONS = {
     [PAYMENT_STATUS.REFUNDED]: [NOTIFICATION_TYPES.PAYMENT_REFUNDED]
 };
 
-// Вспомогательные функции
 
-/**
- * Получить метаданные типа уведомления
- */
+
+
 function getNotificationMetadata(type) {
     return NOTIFICATION_METADATA[type] || null;
 }
 
-/**
- * Получить шаблон уведомления
- */
+
 function getNotificationTemplate(type, channel, lang = 'ru') {
     const metadata = NOTIFICATION_METADATA[type];
     if (!metadata || !metadata.templates[channel]) return null;
@@ -640,7 +636,7 @@ function getNotificationTemplate(type, channel, lang = 'ru') {
     const template = metadata.templates[channel];
     const result = {};
 
-    // Обрабатываем все поля шаблона
+    
     Object.keys(template).forEach(key => {
         if (template[key] && typeof template[key] === 'object' && template[key][lang]) {
             result[key] = template[key][lang];
@@ -652,33 +648,25 @@ function getNotificationTemplate(type, channel, lang = 'ru') {
     return result;
 }
 
-/**
- * Проверить, доступен ли канал для типа уведомления
- */
+
 function isChannelAvailable(type, channel) {
     const metadata = NOTIFICATION_METADATA[type];
     return metadata && metadata.channels.includes(channel);
 }
 
-/**
- * Получить приоритет уведомления
- */
+
 function getNotificationPriority(type) {
     const metadata = NOTIFICATION_METADATA[type];
     return metadata?.priority || NOTIFICATION_PRIORITY.NORMAL;
 }
 
-/**
- * Получить TTL уведомления
- */
+
 function getNotificationTTL(type) {
     const metadata = NOTIFICATION_METADATA[type];
     return metadata?.ttl || NOTIFICATION_TTL.HOUR_24;
 }
 
-/**
- * Получить список получателей для типа уведомления
- */
+
 function getNotificationRecipients(type) {
     const metadata = NOTIFICATION_METADATA[type];
     if (!metadata) return [];
@@ -690,55 +678,41 @@ function getNotificationRecipients(type) {
     return metadata.recipients || [];
 }
 
-/**
- * Получить типы уведомлений для изменения статуса заказа
- */
+
 function getOrderStatusNotifications(newStatus, oldStatus = null) {
     return ORDER_STATUS_NOTIFICATIONS[newStatus] || [];
 }
 
-/**
- * Получить типы уведомлений для изменения статуса платежа
- */
+
 function getPaymentStatusNotifications(newStatus, oldStatus = null) {
     return PAYMENT_STATUS_NOTIFICATIONS[newStatus] || [];
 }
 
-/**
- * Проверить, требует ли уведомление подтверждения прочтения
- */
+
 function requiresAcknowledgment(type) {
     const metadata = NOTIFICATION_METADATA[type];
     return metadata?.requiresAcknowledgment || false;
 }
 
-/**
- * Получить действия для уведомления
- */
+
 function getNotificationActions(type) {
     const metadata = NOTIFICATION_METADATA[type];
     return metadata?.actions || [];
 }
 
-/**
- * Проверить, является ли уведомление критическим
- */
+
 function isCriticalNotification(type) {
     const metadata = NOTIFICATION_METADATA[type];
     return metadata?.priority === NOTIFICATION_PRIORITY.CRITICAL ||
         metadata?.category === NOTIFICATION_CATEGORIES.CRITICAL;
 }
 
-/**
- * Получить настройки канала по умолчанию для роли
- */
+
 function getDefaultChannelSettings(role) {
     return DEFAULT_CHANNEL_SETTINGS[role] || DEFAULT_CHANNEL_SETTINGS[USER_ROLES.CLIENT];
 }
 
-/**
- * Фильтровать уведомления по категории
- */
+
 function filterByCategory(types, category) {
     return types.filter(type => {
         const metadata = NOTIFICATION_METADATA[type];
@@ -746,25 +720,19 @@ function filterByCategory(types, category) {
     });
 }
 
-/**
- * Получить звук уведомления
- */
+
 function getNotificationSound(type) {
     const metadata = NOTIFICATION_METADATA[type];
     return metadata?.sound || 'default.mp3';
 }
 
-/**
- * Проверить, нужна ли вибрация
- */
+
 function shouldVibrate(type) {
     const metadata = NOTIFICATION_METADATA[type];
     return metadata?.vibration || false;
 }
 
-/**
- * Получить паттерн вибрации
- */
+
 function getVibrationPattern(type) {
     const metadata = NOTIFICATION_METADATA[type];
     if (Array.isArray(metadata?.vibration)) {
@@ -773,21 +741,17 @@ function getVibrationPattern(type) {
     return metadata?.vibration ? [200] : null;
 }
 
-/**
- * Валидация типа уведомления
- */
+
 function isValidNotificationType(type) {
     return Object.values(NOTIFICATION_TYPES).includes(type);
 }
 
-/**
- * Валидация канала доставки
- */
+
 function isValidChannel(channel) {
     return Object.values(NOTIFICATION_CHANNELS).includes(channel);
 }
 
-// Экспортируем
+
 module.exports = {
     NOTIFICATION_TYPES,
     NOTIFICATION_CATEGORIES,
@@ -800,7 +764,7 @@ module.exports = {
     ORDER_STATUS_NOTIFICATIONS,
     PAYMENT_STATUS_NOTIFICATIONS,
 
-    // Функции
+    
     getNotificationMetadata,
     getNotificationTemplate,
     isChannelAvailable,

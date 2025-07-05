@@ -1,4 +1,4 @@
-// src/models/notification.model.js
+
 
 'use strict';
 
@@ -18,20 +18,20 @@ const {
 const { USER_ROLES } = require('../utils/constants/user-roles');
 const { AppError } = require('../utils/errors/app-error');
 
-// Статусы уведомления
+
 const NOTIFICATION_STATUS = {
-    CREATED: 'created',              // Создано
-    QUEUED: 'queued',               // В очереди
-    PROCESSING: 'processing',        // Обрабатывается
-    SENT: 'sent',                   // Отправлено
-    DELIVERED: 'delivered',         // Доставлено
-    READ: 'read',                   // Прочитано
-    FAILED: 'failed',               // Ошибка
-    CANCELLED: 'cancelled',         // Отменено
-    EXPIRED: 'expired'              // Истекло
+    CREATED: 'created',              
+    QUEUED: 'queued',               
+    PROCESSING: 'processing',        
+    SENT: 'sent',                   
+    DELIVERED: 'delivered',         
+    READ: 'read',                   
+    FAILED: 'failed',               
+    CANCELLED: 'cancelled',         
+    EXPIRED: 'expired'              
 };
 
-// Статусы доставки по каналам
+
 const DELIVERY_STATUS = {
     PENDING: 'pending',
     SENDING: 'sending',
@@ -43,7 +43,7 @@ const DELIVERY_STATUS = {
     UNSUBSCRIBED: 'unsubscribed'
 };
 
-// Причины ошибок
+
 const FAILURE_REASONS = {
     INVALID_TOKEN: 'invalid_token',
     UNREGISTERED: 'unregistered',
@@ -55,28 +55,28 @@ const FAILURE_REASONS = {
     UNKNOWN: 'unknown'
 };
 
-// Схема уведомления
+
 const notificationSchema = {
     _id: ObjectId,
 
-    // Основная информация
-    type: String,                    // Из NOTIFICATION_TYPES
-    category: String,                // Из NOTIFICATION_CATEGORIES
-    priority: String,                // Из NOTIFICATION_PRIORITY
-    status: String,                  // Из NOTIFICATION_STATUS
+    
+    type: String,                    
+    category: String,                
+    priority: String,                
+    status: String,                  
 
-    // Получатель
+    
     recipient: {
         userId: ObjectId,
-        role: String,                // Из USER_ROLES
+        role: String,                
 
-        // Кэшируем важные данные для быстрого доступа
+        
         name: String,
         phone: String,
         email: String,
-        language: String,            // ru, uz, en
+        language: String,            
 
-        // Настройки получателя
+        
         preferences: {
             channels: {
                 push: Boolean,
@@ -86,8 +86,8 @@ const notificationSchema = {
             },
             quietHours: {
                 enabled: Boolean,
-                start: String,       // "22:00"
-                end: String,         // "08:00"
+                start: String,       
+                end: String,         
                 timezone: String
             },
             categories: {
@@ -99,7 +99,7 @@ const notificationSchema = {
         }
     },
 
-    // Связанные сущности
+    
     references: {
         orderId: ObjectId,
         paymentId: ObjectId,
@@ -107,15 +107,15 @@ const notificationSchema = {
         stoId: ObjectId,
         ticketId: ObjectId,
 
-        // Для группировки
-        groupId: String,             // Для батчевой отправки
-        campaignId: ObjectId,        // Для маркетинговых кампаний
-        templateId: ObjectId         // Шаблон уведомления
+        
+        groupId: String,             
+        campaignId: ObjectId,        
+        templateId: ObjectId         
     },
 
-    // Контент уведомления
+    
     content: {
-        // Основной контент
+        
         title: {
             ru: String,
             uz: String,
@@ -127,22 +127,22 @@ const notificationSchema = {
             en: String
         },
 
-        // Дополнительные поля
+        
         subtitle: {
             ru: String,
             uz: String,
             en: String
         },
 
-        // Медиа
+        
         media: {
-            icon: String,            // URL иконки
-            image: String,           // URL изображения
-            sound: String,           // Файл звука
-            badge: Number            // Число для бейджа
+            icon: String,            
+            image: String,           
+            sound: String,           
+            badge: Number            
         },
 
-        // Действия
+        
         actions: [{
             id: String,
             label: {
@@ -150,46 +150,46 @@ const notificationSchema = {
                 uz: String,
                 en: String
             },
-            type: String,            // deeplink, url, dismiss
-            action: String,          // URL или deeplink
-            style: String            // default, primary, danger
+            type: String,            
+            action: String,          
+            style: String            
         }],
 
-        // Данные для обработки
+        
         data: {
             type: String,
             entityId: String,
-            metadata: Object         // Произвольные данные
+            metadata: Object         
         }
     },
 
-    // Каналы доставки
+    
     channels: [{
-        type: String,                // Из NOTIFICATION_CHANNELS
+        type: String,                
         enabled: Boolean,
-        status: String,              // Из DELIVERY_STATUS
+        status: String,              
 
-        // Детали отправки
+        
         delivery: {
-            // Push
+            
             push: {
-                provider: String,    // fcm, apns
-                token: String,       // Токен устройства
+                provider: String,    
+                token: String,       
                 deviceId: String,
-                platform: String,    // ios, android
+                platform: String,    
 
-                // Результат отправки
+                
                 messageId: String,
                 sentAt: Date,
                 deliveredAt: Date,
                 readAt: Date,
                 clickedAt: Date,
 
-                // TTL для push
+                
                 ttl: Number,
                 collapseKey: String,
 
-                // Ошибки
+                
                 error: {
                     code: String,
                     message: String,
@@ -197,16 +197,16 @@ const notificationSchema = {
                 }
             },
 
-            // SMS
+            
             sms: {
-                provider: String,    // playmobile, beeline
+                provider: String,    
                 phone: String,
                 messageId: String,
-                parts: Number,       // Количество частей SMS
+                parts: Number,       
 
                 sentAt: Date,
                 deliveredAt: Date,
-                cost: Number,        // Стоимость отправки
+                cost: Number,        
 
                 error: {
                     code: String,
@@ -214,9 +214,9 @@ const notificationSchema = {
                 }
             },
 
-            // Email
+            
             email: {
-                provider: String,    // sendgrid, mailgun
+                provider: String,    
                 to: String,
                 messageId: String,
 
@@ -226,7 +226,7 @@ const notificationSchema = {
                 clickedAt: Date,
                 unsubscribedAt: Date,
 
-                // Tracking
+                
                 opens: Number,
                 clicks: [{
                     url: String,
@@ -237,13 +237,13 @@ const notificationSchema = {
                     code: String,
                     message: String,
                     bounce: {
-                        type: String, // hard, soft
+                        type: String, 
                         reason: String
                     }
                 }
             },
 
-            // In-App
+            
             inApp: {
                 shownAt: Date,
                 readAt: Date,
@@ -252,7 +252,7 @@ const notificationSchema = {
             }
         },
 
-        // Попытки отправки
+        
         attempts: [{
             attemptNumber: Number,
             timestamp: Date,
@@ -263,7 +263,7 @@ const notificationSchema = {
             }
         }],
 
-        // Настройки канала
+        
         settings: {
             retryEnabled: Boolean,
             maxRetries: Number,
@@ -272,39 +272,39 @@ const notificationSchema = {
         }
     }],
 
-    // Расписание отправки
+    
     scheduling: {
-        scheduledFor: Date,          // Когда отправить
-        sendAfter: Date,            // Не отправлять до
-        sendBefore: Date,           // Не отправлять после
+        scheduledFor: Date,          
+        sendAfter: Date,            
+        sendBefore: Date,           
 
-        // Батчевая отправка
+        
         batch: {
             enabled: Boolean,
             batchId: String,
-            position: Number,        // Позиция в батче
+            position: Number,        
             totalInBatch: Number
         },
 
-        // Throttling
+        
         throttle: {
             enabled: Boolean,
-            rate: Number,           // Уведомлений в минуту
-            bucket: String          // Группа для throttling
+            rate: Number,           
+            bucket: String          
         }
     },
 
-    // Статистика
+    
     stats: {
-        // Общая статистика
+        
         totalChannels: Number,
         sentChannels: Number,
         deliveredChannels: Number,
         failedChannels: Number,
 
-        // Время обработки
+        
         processingTime: {
-            total: Number,          // мс
+            total: Number,          
             perChannel: {
                 push: Number,
                 sms: Number,
@@ -312,7 +312,7 @@ const notificationSchema = {
             }
         },
 
-        // Эффективность
+        
         engagement: {
             opened: Boolean,
             clicked: Boolean,
@@ -321,56 +321,56 @@ const notificationSchema = {
         }
     },
 
-    // Жизненный цикл
+    
     lifecycle: {
-        ttl: Number,                // Секунды
+        ttl: Number,                
         expiresAt: Date,
         expiredAt: Date,
 
-        // Подтверждение прочтения
+        
         acknowledgment: {
             required: Boolean,
             acknowledgedAt: Date,
             acknowledgedBy: ObjectId,
-            method: String          // auto, manual, action
+            method: String          
         },
 
-        // Отмена
+        
         cancellation: {
             cancelledAt: Date,
             cancelledBy: ObjectId,
             reason: String
         },
 
-        // Автоматические действия
+        
         autoActions: {
             autoDismiss: Boolean,
-            autoDismissAfter: Number, // Секунды
+            autoDismissAfter: Number, 
             autoCancel: Boolean,
             autoCancelAfter: Number
         }
     },
 
-    // Группировка и дедупликация
+    
     grouping: {
-        // Группировка похожих уведомлений
+        
         groupKey: String,
         groupCount: Number,
         isGroupSummary: Boolean,
 
-        // Дедупликация
+        
         deduplicationKey: String,
         replacesNotificationId: ObjectId,
         replacedByNotificationId: ObjectId
     },
 
-    // A/B тестирование
+    
     experiment: {
         enabled: Boolean,
         experimentId: String,
-        variant: String,            // control, variant_a, variant_b
+        variant: String,            
 
-        // Для анализа
+        
         metrics: {
             sent: Boolean,
             delivered: Boolean,
@@ -380,17 +380,17 @@ const notificationSchema = {
         }
     },
 
-    // Метаданные
+    
     metadata: {
-        // Источник
-        source: String,             // system, admin, trigger, api
+        
+        source: String,             
         sourceId: String,
 
-        // Версии
+        
         version: Number,
         templateVersion: String,
 
-        // Контекст
+        
         context: {
             ip: String,
             userAgent: String,
@@ -398,38 +398,38 @@ const notificationSchema = {
             appVersion: String
         },
 
-        // Теги
+        
         tags: [String],
 
-        // Кастомные поля
+        
         custom: Object
     },
 
-    // Аудит
+    
     audit: {
         createdBy: ObjectId,
-        createdByType: String,      // system, user, admin
+        createdByType: String,      
 
-        // История изменений
+        
         history: [{
             timestamp: Date,
-            action: String,         // status_change, content_update
+            action: String,         
             performedBy: ObjectId,
             changes: Object
         }]
     },
 
-    // Оптимизация для поиска
+    
     search: {
-        // Для полнотекстового поиска
+        
         searchText: String,
 
-        // Для фильтрации
-        dateKey: Number,           // YYYYMMDD для партиционирования
-        hourKey: Number,          // HH для группировки по часам
+        
+        dateKey: Number,           
+        hourKey: Number,          
     },
 
-    // Временные метки
+    
     createdAt: Date,
     queuedAt: Date,
     processingStartedAt: Date,
@@ -439,40 +439,40 @@ const notificationSchema = {
     updatedAt: Date
 };
 
-// Класс для работы с уведомлениями
+
 class NotificationModel {
     constructor(db) {
         this.collection = db.collection('notifications');
         this.setupIndexes();
     }
 
-    // Создание индексов для высокой производительности
+    
     async setupIndexes() {
         try {
-            // Основные индексы для поиска
+            
             await this.collection.createIndex({ 'recipient.userId': 1, createdAt: -1 });
             await this.collection.createIndex({ status: 1, 'scheduling.scheduledFor': 1 });
             await this.collection.createIndex({ type: 1, status: 1 });
             await this.collection.createIndex({ category: 1, priority: -1 });
 
-            // Индексы для обработки
+            
             await this.collection.createIndex({
                 status: 1,
                 'scheduling.scheduledFor': 1,
                 priority: -1
             });
 
-            // Индексы для батчевой обработки
+            
             await this.collection.createIndex({
                 'scheduling.batch.batchId': 1,
                 'scheduling.batch.position': 1
             });
 
-            // Индексы для связей
+            
             await this.collection.createIndex({ 'references.orderId': 1 });
             await this.collection.createIndex({ 'references.groupId': 1 });
 
-            // Индекс для дедупликации
+            
             await this.collection.createIndex(
                 { 'grouping.deduplicationKey': 1 },
                 {
@@ -484,7 +484,7 @@ class NotificationModel {
                 }
             );
 
-            // Составной индекс для фильтрации
+            
             await this.collection.createIndex({
                 'recipient.userId': 1,
                 type: 1,
@@ -492,24 +492,24 @@ class NotificationModel {
                 createdAt: -1
             });
 
-            // Индекс для аналитики
+            
             await this.collection.createIndex({
                 'search.dateKey': -1,
                 'search.hourKey': -1
             });
 
-            // TTL индекс для автоматического удаления
+            
             await this.collection.createIndex(
                 { 'lifecycle.expiresAt': 1 },
                 { expireAfterSeconds: 0 }
             );
 
-            // Текстовый индекс для поиска
+            
             await this.collection.createIndex({
                 'search.searchText': 'text'
             });
 
-            // Индекс для непрочитанных уведомлений
+            
             await this.collection.createIndex({
                 'recipient.userId': 1,
                 status: 1,
@@ -521,11 +521,11 @@ class NotificationModel {
         }
     }
 
-    // Создание уведомления
+    
     async create(notificationData) {
         const now = new Date();
 
-        // Получаем метаданные типа уведомления
+        
         const typeMetadata = getNotificationMetadata(notificationData.type);
         if (!typeMetadata) {
             throw new AppError(
@@ -535,7 +535,7 @@ class NotificationModel {
             );
         }
 
-        // Подготовка данных
+        
         const notification = {
             _id: new ObjectId(),
             type: notificationData.type,
@@ -626,19 +626,19 @@ class NotificationModel {
             updatedAt: now
         };
 
-        // Подсчет активных каналов
+        
         notification.stats.totalChannels = notification.channels.filter(ch => ch.enabled).length;
 
-        // Вставка в БД
+        
         const result = await this.collection.insertOne(notification);
         return { ...notification, _id: result.insertedId };
     }
 
-    // Подготовка контента
+    
     prepareContent(notificationData, typeMetadata) {
         const { language = 'ru', templateData = {} } = notificationData;
 
-        // Получаем шаблоны для всех языков
+        
         const content = {
             title: {},
             body: {},
@@ -651,7 +651,7 @@ class NotificationModel {
             data: notificationData.data || {}
         };
 
-        // Заполняем контент для каждого языка
+        
         ['ru', 'uz', 'en'].forEach(lang => {
             const template = getNotificationTemplate(notificationData.type, 'push', lang);
             if (template) {
@@ -666,14 +666,14 @@ class NotificationModel {
         return content;
     }
 
-    // Подготовка каналов
+    
     prepareChannels(notificationData, typeMetadata) {
         const channels = [];
         const availableChannels = typeMetadata.channels || [];
 
-        // Добавляем каналы на основе метаданных типа
+        
         availableChannels.forEach(channelType => {
-            // Проверяем настройки пользователя
+            
             const isEnabled = notificationData.preferences?.channels?.[channelType] !== false;
 
             if (isEnabled) {
@@ -696,7 +696,7 @@ class NotificationModel {
         return channels;
     }
 
-    // Поиск уведомлений пользователя
+    
     async findByUserId(userId, options = {}) {
         const {
             types = null,
@@ -730,7 +730,7 @@ class NotificationModel {
             .toArray();
     }
 
-    // Поиск уведомлений для отправки
+    
     async findForProcessing(limit = 100) {
         const now = new Date();
 
@@ -751,7 +751,7 @@ class NotificationModel {
             .toArray();
     }
 
-    // Обновление статуса
+    
     async updateStatus(notificationId, newStatus, details = {}) {
         const now = new Date();
 
@@ -762,7 +762,7 @@ class NotificationModel {
             }
         };
 
-        // Добавляем временные метки
+        
         const timestampMap = {
             [NOTIFICATION_STATUS.QUEUED]: 'queuedAt',
             [NOTIFICATION_STATUS.PROCESSING]: 'processingStartedAt',
@@ -775,7 +775,7 @@ class NotificationModel {
             updateData.$set[timestampMap[newStatus]] = now;
         }
 
-        // Добавляем в историю
+        
         updateData.$push = {
             'audit.history': {
                 timestamp: now,
@@ -792,7 +792,7 @@ class NotificationModel {
         );
     }
 
-    // Обновление статуса канала
+    
     async updateChannelStatus(notificationId, channelType, status, details = {}) {
         const now = new Date();
 
@@ -807,7 +807,7 @@ class NotificationModel {
             }
         };
 
-        // Добавляем попытку
+        
         if (details.error) {
             updateData.$push = {
                 'channels.$.attempts': {
@@ -819,7 +819,7 @@ class NotificationModel {
             };
         }
 
-        // Обновляем статистику
+        
         const statsUpdate = {};
         if (status === DELIVERY_STATUS.SENT) {
             statsUpdate['stats.sentChannels'] = 1;
@@ -843,7 +843,7 @@ class NotificationModel {
         );
     }
 
-    // Пометка как прочитанное
+    
     async markAsRead(notificationId, userId) {
         const now = new Date();
 
@@ -867,7 +867,7 @@ class NotificationModel {
         );
     }
 
-    // Подтверждение получения
+    
     async acknowledge(notificationId, userId, method = 'manual') {
         const now = new Date();
 
@@ -889,12 +889,12 @@ class NotificationModel {
         );
     }
 
-    // Массовая отправка
+    
     async createBatch(notifications) {
         const batchId = new ObjectId().toString();
         const now = new Date();
 
-        // Подготавливаем уведомления для батча
+        
         const batchNotifications = notifications.map((notification, index) => ({
             ...notification,
             scheduling: {
@@ -921,9 +921,9 @@ class NotificationModel {
         };
     }
 
-    // Вспомогательные методы
+    
 
-    // Интерполяция шаблона
+    
     interpolateTemplate(template, data) {
         if (!template) return '';
 
@@ -932,17 +932,17 @@ class NotificationModel {
         });
     }
 
-    // Расчет даты истечения
+    
     calculateExpiryDate(notificationType, createdDate) {
         const ttl = getNotificationTTL(notificationType);
         if (!ttl || ttl === 0) {
-            // Устанавливаем дефолтный TTL 30 дней
+            
             return new Date(createdDate.getTime() + 30 * 24 * 60 * 60 * 1000);
         }
         return new Date(createdDate.getTime() + ttl * 1000);
     }
 
-    // Генерация текста для поиска
+    
     generateSearchText(notificationData) {
         const parts = [
             notificationData.type,
@@ -954,7 +954,7 @@ class NotificationModel {
         return parts.join(' ');
     }
 
-    // Получение поля временной метки для канала
+    
     getChannelTimestampField(status) {
         const map = {
             [DELIVERY_STATUS.SENT]: 'sent',
@@ -966,11 +966,11 @@ class NotificationModel {
         return map[status] || 'updated';
     }
 
-    // Статистика уведомлений
+    
     async getStatistics(filters = {}) {
         const pipeline = [];
 
-        // Фильтры
+        
         const match = {};
         if (filters.userId) {
             match['recipient.userId'] = new ObjectId(filters.userId);
@@ -987,7 +987,7 @@ class NotificationModel {
             pipeline.push({ $match: match });
         }
 
-        // Группировка
+        
         pipeline.push({
             $group: {
                 _id: {
@@ -1010,7 +1010,7 @@ class NotificationModel {
         return await this.collection.aggregate(pipeline).toArray();
     }
 
-    // Очистка старых уведомлений (для ручного запуска)
+    
     async cleanupExpired() {
         const now = new Date();
 
@@ -1024,7 +1024,7 @@ class NotificationModel {
     }
 }
 
-// Экспортируем
+
 module.exports = {
     NotificationModel,
     NOTIFICATION_STATUS,

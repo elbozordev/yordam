@@ -1,37 +1,37 @@
-// src/utils/constants/order-status.js
+
 
 'use strict';
 
-// Основные статусы заказов
+
 const ORDER_STATUS = {
-    // Начальные статусы
-    NEW: 'new',                         // Новый заказ, только создан
-    SEARCHING: 'searching',             // Идет поиск мастера
+    
+    NEW: 'new',                         
+    SEARCHING: 'searching',             
 
-    // Статусы назначения
-    ASSIGNED: 'assigned',               // Мастер назначен
-    ACCEPTED: 'accepted',               // Мастер принял заказ
-    REJECTED: 'rejected',               // Мастер отклонил заказ
+    
+    ASSIGNED: 'assigned',               
+    ACCEPTED: 'accepted',               
+    REJECTED: 'rejected',               
 
-    // Статусы выполнения
-    EN_ROUTE: 'en_route',              // Мастер в пути к клиенту
-    ARRIVED: 'arrived',                 // Мастер прибыл
-    IN_PROGRESS: 'in_progress',         // Работа началась
+    
+    EN_ROUTE: 'en_route',              
+    ARRIVED: 'arrived',                 
+    IN_PROGRESS: 'in_progress',         
 
-    // Финальные статусы
-    COMPLETED: 'completed',             // Заказ успешно завершен
-    CANCELLED: 'cancelled',             // Заказ отменен
-    FAILED: 'failed',                   // Заказ не выполнен
+    
+    COMPLETED: 'completed',             
+    CANCELLED: 'cancelled',             
+    FAILED: 'failed',                   
 
-    // Специальные статусы
-    DISPUTED: 'disputed',               // Спорный заказ
-    ON_HOLD: 'on_hold',                // Заказ приостановлен
-    EXPIRED: 'expired'                  // Истек срок поиска мастера
+    
+    DISPUTED: 'disputed',               
+    ON_HOLD: 'on_hold',                
+    EXPIRED: 'expired'                  
 };
 
-// Группы статусов
+
 const STATUS_GROUPS = {
-    // Активные статусы (заказ в работе)
+    
     ACTIVE: [
         ORDER_STATUS.NEW,
         ORDER_STATUS.SEARCHING,
@@ -43,7 +43,7 @@ const STATUS_GROUPS = {
         ORDER_STATUS.ON_HOLD
     ],
 
-    // Финальные статусы (заказ завершен)
+    
     FINAL: [
         ORDER_STATUS.COMPLETED,
         ORDER_STATUS.CANCELLED,
@@ -51,7 +51,7 @@ const STATUS_GROUPS = {
         ORDER_STATUS.EXPIRED
     ],
 
-    // Статусы, когда мастер назначен
+    
     WITH_MASTER: [
         ORDER_STATUS.ASSIGNED,
         ORDER_STATUS.ACCEPTED,
@@ -60,7 +60,7 @@ const STATUS_GROUPS = {
         ORDER_STATUS.IN_PROGRESS
     ],
 
-    // Статусы, когда можно отменить
+    
     CANCELLABLE: [
         ORDER_STATUS.NEW,
         ORDER_STATUS.SEARCHING,
@@ -69,19 +69,19 @@ const STATUS_GROUPS = {
         ORDER_STATUS.EN_ROUTE
     ],
 
-    // Статусы, требующие оплаты
+    
     PAYABLE: [
         ORDER_STATUS.COMPLETED
     ],
 
-    // Статусы для расчета статистики мастера
+    
     COUNTABLE_FOR_MASTER: [
         ORDER_STATUS.COMPLETED,
         ORDER_STATUS.FAILED
     ]
 };
 
-// Разрешенные переходы между статусами
+
 const STATUS_TRANSITIONS = {
     [ORDER_STATUS.NEW]: [
         ORDER_STATUS.SEARCHING,
@@ -97,7 +97,7 @@ const STATUS_TRANSITIONS = {
     [ORDER_STATUS.ASSIGNED]: [
         ORDER_STATUS.ACCEPTED,
         ORDER_STATUS.REJECTED,
-        ORDER_STATUS.SEARCHING,  // Если мастер не ответил
+        ORDER_STATUS.SEARCHING,  
         ORDER_STATUS.CANCELLED
     ],
 
@@ -107,7 +107,7 @@ const STATUS_TRANSITIONS = {
     ],
 
     [ORDER_STATUS.REJECTED]: [
-        ORDER_STATUS.SEARCHING   // Возврат к поиску
+        ORDER_STATUS.SEARCHING   
     ],
 
     [ORDER_STATUS.EN_ROUTE]: [
@@ -142,65 +142,65 @@ const STATUS_TRANSITIONS = {
         ORDER_STATUS.CANCELLED
     ],
 
-    // Финальные статусы не могут переходить никуда
+    
     [ORDER_STATUS.COMPLETED]: [],
     [ORDER_STATUS.CANCELLED]: [],
     [ORDER_STATUS.FAILED]: [],
     [ORDER_STATUS.EXPIRED]: []
 };
 
-// Временные ограничения для статусов (в миллисекундах)
+
 const STATUS_TIMEOUTS = {
-    [ORDER_STATUS.NEW]: 60000,              // 1 минута на начало поиска
-    [ORDER_STATUS.SEARCHING]: 300000,       // 5 минут на поиск мастера
-    [ORDER_STATUS.ASSIGNED]: 30000,         // 30 секунд на принятие мастером
-    [ORDER_STATUS.ACCEPTED]: 300000,        // 5 минут на начало движения
-    [ORDER_STATUS.EN_ROUTE]: 3600000,       // 1 час на прибытие
-    [ORDER_STATUS.ARRIVED]: 600000,         // 10 минут на начало работы
-    [ORDER_STATUS.IN_PROGRESS]: 10800000,   // 3 часа на выполнение работы
-    [ORDER_STATUS.ON_HOLD]: 1800000         // 30 минут максимум на паузе
+    [ORDER_STATUS.NEW]: 60000,              
+    [ORDER_STATUS.SEARCHING]: 300000,       
+    [ORDER_STATUS.ASSIGNED]: 30000,         
+    [ORDER_STATUS.ACCEPTED]: 300000,        
+    [ORDER_STATUS.EN_ROUTE]: 3600000,       
+    [ORDER_STATUS.ARRIVED]: 600000,         
+    [ORDER_STATUS.IN_PROGRESS]: 10800000,   
+    [ORDER_STATUS.ON_HOLD]: 1800000         
 };
 
-// Причины отмены для разных ролей
+
 const CANCELLATION_REASONS = {
     CLIENT: {
-        CHANGED_MIND: 'changed_mind',              // Передумал
-        FOUND_ANOTHER: 'found_another',            // Нашел другого мастера
-        WRONG_ADDRESS: 'wrong_address',            // Неправильный адрес
-        PRICE_TOO_HIGH: 'price_too_high',         // Высокая цена
-        LONG_WAIT: 'long_wait',                    // Долгое ожидание
-        OTHER: 'other'                             // Другая причина
+        CHANGED_MIND: 'changed_mind',              
+        FOUND_ANOTHER: 'found_another',            
+        WRONG_ADDRESS: 'wrong_address',            
+        PRICE_TOO_HIGH: 'price_too_high',         
+        LONG_WAIT: 'long_wait',                    
+        OTHER: 'other'                             
     },
 
     MASTER: {
-        TOO_FAR: 'too_far',                        // Слишком далеко
-        BUSY: 'busy',                              // Занят другим заказом
-        NO_PARTS: 'no_parts',                      // Нет запчастей
-        INAPPROPRIATE_ORDER: 'inappropriate_order', // Неподходящий заказ
-        TECHNICAL_ISSUE: 'technical_issue',        // Технические проблемы
+        TOO_FAR: 'too_far',                        
+        BUSY: 'busy',                              
+        NO_PARTS: 'no_parts',                      
+        INAPPROPRIATE_ORDER: 'inappropriate_order', 
+        TECHNICAL_ISSUE: 'technical_issue',        
         OTHER: 'other'
     },
 
     SYSTEM: {
-        NO_MASTERS: 'no_masters',                  // Нет доступных мастеров
-        TIMEOUT: 'timeout',                        // Истекло время
-        PAYMENT_FAILED: 'payment_failed',          // Ошибка оплаты
-        FRAUD_DETECTED: 'fraud_detected',          // Обнаружено мошенничество
-        TECHNICAL_ERROR: 'technical_error'         // Техническая ошибка
+        NO_MASTERS: 'no_masters',                  
+        TIMEOUT: 'timeout',                        
+        PAYMENT_FAILED: 'payment_failed',          
+        FRAUD_DETECTED: 'fraud_detected',          
+        TECHNICAL_ERROR: 'technical_error'         
     }
 };
 
-// Причины неудачного выполнения
+
 const FAILURE_REASONS = {
-    CLIENT_ABSENT: 'client_absent',               // Клиент отсутствует
-    WRONG_PROBLEM: 'wrong_problem',               // Неверно описана проблема
-    CANNOT_FIX: 'cannot_fix',                     // Невозможно починить на месте
-    NO_PAYMENT: 'no_payment',                     // Клиент отказался платить
-    WEATHER: 'weather',                           // Погодные условия
+    CLIENT_ABSENT: 'client_absent',               
+    WRONG_PROBLEM: 'wrong_problem',               
+    CANNOT_FIX: 'cannot_fix',                     
+    NO_PAYMENT: 'no_payment',                     
+    WEATHER: 'weather',                           
     OTHER: 'other'
 };
 
-// Метаданные статусов (для UI и логики)
+
 const STATUS_METADATA = {
     [ORDER_STATUS.NEW]: {
         label: {
@@ -333,61 +333,45 @@ const STATUS_METADATA = {
     }
 };
 
-// Вспомогательные функции
 
-/**
- * Проверка, является ли статус финальным
- */
+
+
 function isFinalStatus(status) {
     return STATUS_GROUPS.FINAL.includes(status);
 }
 
-/**
- * Проверка, является ли статус активным
- */
+
 function isActiveStatus(status) {
     return STATUS_GROUPS.ACTIVE.includes(status);
 }
 
-/**
- * Проверка, можно ли отменить заказ в данном статусе
- */
+
 function isCancellable(status) {
     return STATUS_GROUPS.CANCELLABLE.includes(status);
 }
 
-/**
- * Проверка, назначен ли мастер
- */
+
 function hasMaster(status) {
     return STATUS_GROUPS.WITH_MASTER.includes(status);
 }
 
-/**
- * Проверка валидности перехода между статусами
- */
+
 function canTransition(fromStatus, toStatus) {
     const allowedTransitions = STATUS_TRANSITIONS[fromStatus] || [];
     return allowedTransitions.includes(toStatus);
 }
 
-/**
- * Получение следующих возможных статусов
- */
+
 function getNextStatuses(currentStatus) {
     return STATUS_TRANSITIONS[currentStatus] || [];
 }
 
-/**
- * Получение таймаута для статуса
- */
+
 function getStatusTimeout(status) {
     return STATUS_TIMEOUTS[status] || null;
 }
 
-/**
- * Получение метаданных статуса
- */
+
 function getStatusMetadata(status, lang = 'ru') {
     const metadata = STATUS_METADATA[status];
     if (!metadata) return null;
@@ -398,9 +382,7 @@ function getStatusMetadata(status, lang = 'ru') {
     };
 }
 
-/**
- * Определение, истек ли таймаут для статуса
- */
+
 function isStatusExpired(status, statusChangedAt) {
     const timeout = getStatusTimeout(status);
     if (!timeout) return false;
@@ -409,31 +391,23 @@ function isStatusExpired(status, statusChangedAt) {
     return elapsed > timeout;
 }
 
-/**
- * Валидация статуса
- */
+
 function isValidStatus(status) {
     return Object.values(ORDER_STATUS).includes(status);
 }
 
-/**
- * Получение причины отмены по коду
- */
+
 function getCancellationReason(role, code) {
     const reasons = CANCELLATION_REASONS[role.toUpperCase()];
     return reasons && reasons[code] ? code : null;
 }
 
-/**
- * Проверка, требует ли статус оплаты
- */
+
 function requiresPayment(status) {
     return STATUS_GROUPS.PAYABLE.includes(status);
 }
 
-/**
- * Расчет прогресса заказа (0-100%)
- */
+
 function calculateProgress(status) {
     const progressMap = {
         [ORDER_STATUS.NEW]: 10,
@@ -451,7 +425,7 @@ function calculateProgress(status) {
     return progressMap[status] || 0;
 }
 
-// Экспортируем
+
 module.exports = {
     ORDER_STATUS,
     STATUS_GROUPS,
@@ -461,7 +435,7 @@ module.exports = {
     FAILURE_REASONS,
     STATUS_METADATA,
 
-    // Функции
+    
     isFinalStatus,
     isActiveStatus,
     isCancellable,

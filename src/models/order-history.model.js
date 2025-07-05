@@ -1,4 +1,4 @@
-// src/models/order-history.model.js
+
 
 'use strict';
 
@@ -6,129 +6,129 @@ const { ObjectId } = require('mongodb');
 const { ORDER_STATUS } = require('../utils/constants/order-status');
 const { USER_ROLES } = require('../utils/constants/user-roles');
 
-// Типы событий в истории заказа
+
 const HISTORY_EVENT_TYPES = {
-    // Жизненный цикл заказа
-    ORDER_CREATED: 'order_created',                    // Заказ создан
-    ORDER_UPDATED: 'order_updated',                    // Заказ обновлен
-    ORDER_CANCELLED: 'order_cancelled',                // Заказ отменен
-    ORDER_COMPLETED: 'order_completed',                // Заказ завершен
-    ORDER_FAILED: 'order_failed',                      // Заказ не выполнен
+    
+    ORDER_CREATED: 'order_created',                    
+    ORDER_UPDATED: 'order_updated',                    
+    ORDER_CANCELLED: 'order_cancelled',                
+    ORDER_COMPLETED: 'order_completed',                
+    ORDER_FAILED: 'order_failed',                      
 
-    // Изменения статуса
-    STATUS_CHANGED: 'status_changed',                  // Изменен статус
-    STATUS_ROLLBACK: 'status_rollback',                // Откат статуса
+    
+    STATUS_CHANGED: 'status_changed',                  
+    STATUS_ROLLBACK: 'status_rollback',                
 
-    // Назначение исполнителей
-    MASTER_ASSIGNED: 'master_assigned',                // Назначен мастер
-    MASTER_UNASSIGNED: 'master_unassigned',            // Отменено назначение
-    MASTER_ACCEPTED: 'master_accepted',                // Мастер принял
-    MASTER_REJECTED: 'master_rejected',                // Мастер отклонил
-    MASTER_ARRIVED: 'master_arrived',                  // Мастер прибыл
-    MASTER_STARTED_WORK: 'master_started_work',       // Мастер начал работу
+    
+    MASTER_ASSIGNED: 'master_assigned',                
+    MASTER_UNASSIGNED: 'master_unassigned',            
+    MASTER_ACCEPTED: 'master_accepted',                
+    MASTER_REJECTED: 'master_rejected',                
+    MASTER_ARRIVED: 'master_arrived',                  
+    MASTER_STARTED_WORK: 'master_started_work',       
 
-    // Поиск исполнителя
-    SEARCH_STARTED: 'search_started',                  // Начат поиск
-    SEARCH_EXPANDED: 'search_expanded',                // Расширен радиус поиска
-    SEARCH_FAILED: 'search_failed',                    // Поиск не удался
-    SEARCH_COMPLETED: 'search_completed',              // Поиск завершен
+    
+    SEARCH_STARTED: 'search_started',                  
+    SEARCH_EXPANDED: 'search_expanded',                
+    SEARCH_FAILED: 'search_failed',                    
+    SEARCH_COMPLETED: 'search_completed',              
 
-    // Финансовые события
-    PRICE_CALCULATED: 'price_calculated',              // Рассчитана цена
-    PRICE_UPDATED: 'price_updated',                    // Обновлена цена
-    SURGE_APPLIED: 'surge_applied',                    // Применен surge
-    DISCOUNT_APPLIED: 'discount_applied',              // Применена скидка
-    PAYMENT_INITIATED: 'payment_initiated',            // Инициирована оплата
-    PAYMENT_COMPLETED: 'payment_completed',            // Оплата завершена
-    PAYMENT_FAILED: 'payment_failed',                  // Оплата не удалась
-    REFUND_INITIATED: 'refund_initiated',              // Инициирован возврат
-    REFUND_COMPLETED: 'refund_completed',              // Возврат завершен
+    
+    PRICE_CALCULATED: 'price_calculated',              
+    PRICE_UPDATED: 'price_updated',                    
+    SURGE_APPLIED: 'surge_applied',                    
+    DISCOUNT_APPLIED: 'discount_applied',              
+    PAYMENT_INITIATED: 'payment_initiated',            
+    PAYMENT_COMPLETED: 'payment_completed',            
+    PAYMENT_FAILED: 'payment_failed',                  
+    REFUND_INITIATED: 'refund_initiated',              
+    REFUND_COMPLETED: 'refund_completed',              
 
-    // События локации
-    LOCATION_UPDATED: 'location_updated',              // Обновлена локация
-    ROUTE_CALCULATED: 'route_calculated',              // Рассчитан маршрут
-    DESTINATION_CHANGED: 'destination_changed',        // Изменен адрес назначения
-    TRACKING_STARTED: 'tracking_started',              // Начато отслеживание
-    TRACKING_STOPPED: 'tracking_stopped',              // Остановлено отслеживание
+    
+    LOCATION_UPDATED: 'location_updated',              
+    ROUTE_CALCULATED: 'route_calculated',              
+    DESTINATION_CHANGED: 'destination_changed',        
+    TRACKING_STARTED: 'tracking_started',              
+    TRACKING_STOPPED: 'tracking_stopped',              
 
-    // Коммуникация
-    MESSAGE_SENT: 'message_sent',                      // Отправлено сообщение
-    CALL_INITIATED: 'call_initiated',                  // Инициирован звонок
-    NOTIFICATION_SENT: 'notification_sent',            // Отправлено уведомление
-    SUPPORT_CONTACTED: 'support_contacted',            // Обращение в поддержку
+    
+    MESSAGE_SENT: 'message_sent',                      
+    CALL_INITIATED: 'call_initiated',                  
+    NOTIFICATION_SENT: 'notification_sent',            
+    SUPPORT_CONTACTED: 'support_contacted',            
 
-    // Оценки и отзывы
-    RATING_GIVEN: 'rating_given',                      // Поставлена оценка
-    REVIEW_SUBMITTED: 'review_submitted',              // Оставлен отзыв
-    COMPLAINT_FILED: 'complaint_filed',                // Подана жалоба
-    DISPUTE_OPENED: 'dispute_opened',                  // Открыт спор
-    DISPUTE_RESOLVED: 'dispute_resolved',              // Спор разрешен
+    
+    RATING_GIVEN: 'rating_given',                      
+    REVIEW_SUBMITTED: 'review_submitted',              
+    COMPLAINT_FILED: 'complaint_filed',                
+    DISPUTE_OPENED: 'dispute_opened',                  
+    DISPUTE_RESOLVED: 'dispute_resolved',              
 
-    // Служебные события
-    SYSTEM_ACTION: 'system_action',                    // Системное действие
-    ADMIN_ACTION: 'admin_action',                      // Действие администратора
-    AUTO_ACTION: 'auto_action',                        // Автоматическое действие
-    ERROR_OCCURRED: 'error_occurred',                  // Произошла ошибка
-    TIMEOUT_REACHED: 'timeout_reached'                 // Достигнут таймаут
+    
+    SYSTEM_ACTION: 'system_action',                    
+    ADMIN_ACTION: 'admin_action',                      
+    AUTO_ACTION: 'auto_action',                        
+    ERROR_OCCURRED: 'error_occurred',                  
+    TIMEOUT_REACHED: 'timeout_reached'                 
 };
 
-// Категории событий
+
 const EVENT_CATEGORIES = {
-    LIFECYCLE: 'lifecycle',                            // Жизненный цикл
-    ASSIGNMENT: 'assignment',                          // Назначение
-    FINANCIAL: 'financial',                            // Финансы
-    LOCATION: 'location',                              // Локация
-    COMMUNICATION: 'communication',                    // Коммуникация
-    FEEDBACK: 'feedback',                              // Обратная связь
-    SYSTEM: 'system'                                   // Системные
+    LIFECYCLE: 'lifecycle',                            
+    ASSIGNMENT: 'assignment',                          
+    FINANCIAL: 'financial',                            
+    LOCATION: 'location',                              
+    COMMUNICATION: 'communication',                    
+    FEEDBACK: 'feedback',                              
+    SYSTEM: 'system'                                   
 };
 
-// Важность событий
+
 const EVENT_SEVERITY = {
-    LOW: 'low',                                        // Информационное
-    MEDIUM: 'medium',                                  // Обычное
-    HIGH: 'high',                                      // Важное
-    CRITICAL: 'critical'                               // Критическое
+    LOW: 'low',                                        
+    MEDIUM: 'medium',                                  
+    HIGH: 'high',                                      
+    CRITICAL: 'critical'                               
 };
 
-// Схема записи истории
+
 const orderHistorySchema = {
     _id: ObjectId,
 
-    // Связь с заказом
-    orderId: ObjectId,                                 // ID заказа
+    
+    orderId: ObjectId,                                 
 
-    // Тип и категория события
-    eventType: String,                                 // Из HISTORY_EVENT_TYPES
-    eventCategory: String,                             // Из EVENT_CATEGORIES
-    severity: String,                                  // Из EVENT_SEVERITY
+    
+    eventType: String,                                 
+    eventCategory: String,                             
+    severity: String,                                  
 
-    // Кто совершил действие
+    
     actor: {
-        type: String,                                  // user, master, sto, admin, system
-        id: ObjectId,                                  // ID актора
-        role: String,                                  // Из USER_ROLES
-        name: String,                                  // Имя для отображения
+        type: String,                                  
+        id: ObjectId,                                  
+        role: String,                                  
+        name: String,                                  
 
-        // Дополнительная информация
-        ip: String,                                    // IP адрес
-        userAgent: String,                             // User Agent
-        deviceId: String,                              // ID устройства
-        appVersion: String                             // Версия приложения
+        
+        ip: String,                                    
+        userAgent: String,                             
+        deviceId: String,                              
+        appVersion: String                             
     },
 
-    // Временная метка события
+    
     timestamp: Date,
 
-    // Изменения состояния
+    
     stateChange: {
-        // Изменение статуса
+        
         status: {
-            from: String,                              // Предыдущий статус
-            to: String                                 // Новый статус
+            from: String,                              
+            to: String                                 
         },
 
-        // Изменение исполнителя
+        
         master: {
             fromId: ObjectId,
             toId: ObjectId,
@@ -136,7 +136,7 @@ const orderHistorySchema = {
             toName: String
         },
 
-        // Изменение цены
+        
         price: {
             from: {
                 base: Number,
@@ -150,10 +150,10 @@ const orderHistorySchema = {
                 discount: Number,
                 total: Number
             },
-            reason: String                             // Причина изменения
+            reason: String                             
         },
 
-        // Изменение локации
+        
         location: {
             from: {
                 address: String,
@@ -171,100 +171,100 @@ const orderHistorySchema = {
             }
         },
 
-        // Другие поля, которые изменились
+        
         otherFields: {
-            // Динамический объект для любых других изменений
-            // field: { from: value, to: value }
+            
+            
         }
     },
 
-    // Детали события
+    
     details: {
-        // Для событий поиска
+        
         search: {
-            radius: Number,                            // Радиус поиска
-            mastersFound: Number,                      // Найдено мастеров
-            mastersNotified: Number,                   // Уведомлено мастеров
-            searchDuration: Number,                    // Длительность поиска (сек)
-            expansions: Number                         // Количество расширений
+            radius: Number,                            
+            mastersFound: Number,                      
+            mastersNotified: Number,                   
+            searchDuration: Number,                    
+            expansions: Number                         
         },
 
-        // Для событий назначения
+        
         assignment: {
-            method: String,                            // auto, manual, customer_choice
-            priority: Number,                          // Приоритет мастера
-            distance: Number,                          // Расстояние до клиента
-            eta: Number,                               // Ожидаемое время прибытия
-            rejectionReason: String,                   // Причина отказа
-            responseTime: Number                       // Время ответа мастера (сек)
+            method: String,                            
+            priority: Number,                          
+            distance: Number,                          
+            eta: Number,                               
+            rejectionReason: String,                   
+            responseTime: Number                       
         },
 
-        // Для финансовых событий
+        
         financial: {
-            amount: Number,                            // Сумма
-            currency: String,                          // Валюта
-            paymentMethod: String,                     // Способ оплаты
-            transactionId: String,                     // ID транзакции
-            commission: Number,                        // Комиссия
-            vatAmount: Number                          // НДС
+            amount: Number,                            
+            currency: String,                          
+            paymentMethod: String,                     
+            transactionId: String,                     
+            commission: Number,                        
+            vatAmount: Number                          
         },
 
-        // Для событий локации
+        
         location: {
-            accuracy: Number,                          // Точность GPS
-            speed: Number,                             // Скорость движения
-            heading: Number,                           // Направление
-            distance: Number,                          // Пройденное расстояние
-            duration: Number                           // Время в пути
+            accuracy: Number,                          
+            speed: Number,                             
+            heading: Number,                           
+            distance: Number,                          
+            duration: Number                           
         },
 
-        // Для коммуникации
+        
         communication: {
-            messageType: String,                       // text, voice, image
-            messageContent: String,                    // Содержание (если не приватное)
-            callDuration: Number,                      // Длительность звонка
-            notificationType: String,                  // push, sms, email
-            deliveryStatus: String                     // sent, delivered, failed
+            messageType: String,                       
+            messageContent: String,                    
+            callDuration: Number,                      
+            notificationType: String,                  
+            deliveryStatus: String                     
         },
 
-        // Для обратной связи
+        
         feedback: {
-            rating: Number,                            // Оценка
-            comment: String,                           // Комментарий
-            tags: [String],                           // Теги отзыва
-            complaintType: String,                     // Тип жалобы
-            resolution: String                         // Решение по жалобе
+            rating: Number,                            
+            comment: String,                           
+            tags: [String],                           
+            complaintType: String,                     
+            resolution: String                         
         },
 
-        // Для системных событий
+        
         system: {
-            action: String,                            // Действие системы
-            reason: String,                            // Причина действия
-            automated: Boolean,                        // Автоматическое действие
-            trigger: String,                           // Что вызвало действие
-            errorCode: String,                         // Код ошибки
-            errorMessage: String,                      // Сообщение об ошибке
-            stackTrace: String                         // Stack trace (для отладки)
+            action: String,                            
+            reason: String,                            
+            automated: Boolean,                        
+            trigger: String,                           
+            errorCode: String,                         
+            errorMessage: String,                      
+            stackTrace: String                         
         }
     },
 
-    // Геолокация события
+    
     location: {
-        // Где произошло событие
+        
         coordinates: {
             type: { type: String, default: 'Point' },
-            coordinates: [Number]                      // [longitude, latitude]
+            coordinates: [Number]                      
         },
         accuracy: Number,
         address: String,
 
-        // Для мобильных событий
-        source: String                                 // gps, network, manual
+        
+        source: String                                 
     },
 
-    // Контекст события
+    
     context: {
-        // Состояние заказа на момент события
+        
         orderState: {
             status: String,
             masterId: ObjectId,
@@ -272,7 +272,7 @@ const orderHistorySchema = {
             paymentStatus: String
         },
 
-        // Состояние участников
+        
         participants: {
             customer: {
                 id: ObjectId,
@@ -293,111 +293,111 @@ const orderHistorySchema = {
             }
         },
 
-        // Внешние факторы
+        
         external: {
-            weather: String,                           // Погода
-            trafficLevel: String,                      // Уровень трафика
-            surgeActive: Boolean,                      // Активен ли surge
-            surgeMultiplier: Number                    // Множитель surge
+            weather: String,                           
+            trafficLevel: String,                      
+            surgeActive: Boolean,                      
+            surgeMultiplier: Number                    
         }
     },
 
-    // Метаданные
+    
     metadata: {
-        // Версионирование
-        schemaVersion: Number,                         // Версия схемы
-        appVersion: String,                            // Версия приложения
-        apiVersion: String,                            // Версия API
+        
+        schemaVersion: Number,                         
+        appVersion: String,                            
+        apiVersion: String,                            
 
-        // Трассировка
-        requestId: String,                             // ID запроса
-        sessionId: String,                             // ID сессии
-        correlationId: String,                         // ID корреляции
+        
+        requestId: String,                             
+        sessionId: String,                             
+        correlationId: String,                         
 
-        // Дополнительные данные
-        tags: [String],                               // Теги для группировки
-        flags: [String],                              // Флаги (suspicious, automated, etc.)
-        customData: Object                            // Произвольные данные
+        
+        tags: [String],                               
+        flags: [String],                              
+        customData: Object                            
     },
 
-    // Связанные события
+    
     relatedEvents: [{
-        eventId: ObjectId,                            // ID связанного события
-        eventType: String,                            // Тип события
-        relation: String                              // caused_by, leads_to, related
+        eventId: ObjectId,                            
+        eventType: String,                            
+        relation: String                              
     }],
 
-    // Флаги
+    
     flags: {
-        isDisputed: Boolean,                          // Оспаривается
-        isDeleted: Boolean,                           // Удалено (soft delete)
-        isArchived: Boolean,                          // Архивировано
-        requiresReview: Boolean,                      // Требует проверки
-        wasEdited: Boolean                            // Было отредактировано
+        isDisputed: Boolean,                          
+        isDeleted: Boolean,                           
+        isArchived: Boolean,                          
+        requiresReview: Boolean,                      
+        wasEdited: Boolean                            
     },
 
-    // Аудит
+    
     audit: {
         createdAt: Date,
         createdBy: ObjectId,
 
-        // Если запись была изменена
+        
         edits: [{
             editedAt: Date,
             editedBy: ObjectId,
             reason: String,
-            changes: Object                           // Что было изменено
+            changes: Object                           
         }]
     }
 };
 
-// Класс для работы с историей заказов
+
 class OrderHistoryModel {
     constructor(db) {
         this.collection = db.collection('order_history');
         this.setupIndexes();
     }
 
-    // Создание индексов
+    
     async setupIndexes() {
         try {
-            // Основные индексы
+            
             await this.collection.createIndex({ orderId: 1, timestamp: -1 });
             await this.collection.createIndex({ eventType: 1, timestamp: -1 });
             await this.collection.createIndex({ 'actor.type': 1, 'actor.id': 1 });
             await this.collection.createIndex({ eventCategory: 1, severity: 1 });
 
-            // Индексы для поиска
+            
             await this.collection.createIndex({ timestamp: -1 });
             await this.collection.createIndex({ 'context.orderState.status': 1 });
             await this.collection.createIndex({ 'metadata.requestId': 1 });
             await this.collection.createIndex({ 'metadata.sessionId': 1 });
 
-            // Геопространственный индекс
+            
             await this.collection.createIndex({ 'location.coordinates': '2dsphere' });
 
-            // Индексы для аналитики
+            
             await this.collection.createIndex({
                 orderId: 1,
                 eventType: 1,
                 timestamp: 1
             });
 
-            // Индекс для связанных событий
+            
             await this.collection.createIndex({ 'relatedEvents.eventId': 1 });
 
-            // TTL индекс для архивных записей (опционально)
-            // await this.collection.createIndex(
-            //     { timestamp: 1 },
-            //     { expireAfterSeconds: 365 * 24 * 60 * 60 } // 1 год
-            // );
+            
+            
+            
+            
+            
 
         } catch (error) {
             console.error('Error creating order history indexes:', error);
         }
     }
 
-    // Создание записи истории
+    
     async create(historyData) {
         const now = new Date();
 
@@ -405,7 +405,7 @@ class OrderHistoryModel {
             _id: new ObjectId(),
             ...historyData,
 
-            // Defaults
+            
             severity: historyData.severity || this.determineSeverity(historyData.eventType),
             eventCategory: historyData.eventCategory || this.determineCategory(historyData.eventType),
             timestamp: historyData.timestamp || now,
@@ -435,7 +435,7 @@ class OrderHistoryModel {
         return { ...history, _id: result.insertedId };
     }
 
-    // Массовое создание записей
+    
     async createMany(historyRecords) {
         if (!historyRecords || historyRecords.length === 0) {
             return [];
@@ -467,7 +467,7 @@ class OrderHistoryModel {
         return records;
     }
 
-    // Получение истории заказа
+    
     async getOrderHistory(orderId, options = {}) {
         const {
             eventTypes = null,
@@ -483,7 +483,7 @@ class OrderHistoryModel {
             orderId: new ObjectId(orderId)
         };
 
-        // Фильтры
+        
         if (!includeDeleted) {
             query['flags.isDeleted'] = { $ne: true };
         }
@@ -510,7 +510,7 @@ class OrderHistoryModel {
             .toArray();
     }
 
-    // Получение последнего события определенного типа
+    
     async getLastEvent(orderId, eventType) {
         return await this.collection.findOne(
             {
@@ -522,7 +522,7 @@ class OrderHistoryModel {
         );
     }
 
-    // Получение истории изменения статусов
+    
     async getStatusHistory(orderId) {
         return await this.collection.find({
             orderId: new ObjectId(orderId),
@@ -533,7 +533,7 @@ class OrderHistoryModel {
             .toArray();
     }
 
-    // Получение истории по актору
+    
     async getActorHistory(actorId, actorType, options = {}) {
         const { limit = 100, offset = 0 } = options;
 
@@ -548,7 +548,7 @@ class OrderHistoryModel {
             .toArray();
     }
 
-    // Поиск подозрительных событий
+    
     async findSuspiciousEvents(orderId) {
         return await this.collection.find({
             orderId: new ObjectId(orderId),
@@ -561,7 +561,7 @@ class OrderHistoryModel {
         }).toArray();
     }
 
-    // Агрегация событий для аналитики
+    
     async aggregateEvents(orderId, groupBy = 'eventType') {
         return await this.collection.aggregate([
             {
@@ -585,7 +585,7 @@ class OrderHistoryModel {
         ]).toArray();
     }
 
-    // Восстановление состояния заказа на момент времени
+    
     async reconstructOrderState(orderId, targetTime) {
         const events = await this.collection.find({
             orderId: new ObjectId(orderId),
@@ -595,7 +595,7 @@ class OrderHistoryModel {
             .sort({ timestamp: 1 })
             .toArray();
 
-        // Начальное состояние
+        
         let state = {
             status: ORDER_STATUS.NEW,
             masterId: null,
@@ -603,7 +603,7 @@ class OrderHistoryModel {
             location: null
         };
 
-        // Применяем события последовательно
+        
         for (const event of events) {
             if (event.stateChange) {
                 if (event.stateChange.status?.to) {
@@ -629,7 +629,7 @@ class OrderHistoryModel {
         };
     }
 
-    // Создание временной шкалы событий
+    
     async createTimeline(orderId) {
         const events = await this.getOrderHistory(orderId, { limit: 1000 });
 
@@ -645,9 +645,9 @@ class OrderHistoryModel {
         return timeline;
     }
 
-    // Вспомогательные методы
+    
 
-    // Определение важности события
+    
     determineSeverity(eventType) {
         const criticalEvents = [
             HISTORY_EVENT_TYPES.ORDER_FAILED,
@@ -674,7 +674,7 @@ class OrderHistoryModel {
         return EVENT_SEVERITY.MEDIUM;
     }
 
-    // Определение категории события
+    
     determineCategory(eventType) {
         const categoryMap = {
             [HISTORY_EVENT_TYPES.ORDER_CREATED]: EVENT_CATEGORIES.LIFECYCLE,
@@ -687,7 +687,7 @@ class OrderHistoryModel {
             [HISTORY_EVENT_TYPES.SYSTEM_ACTION]: EVENT_CATEGORIES.SYSTEM
         };
 
-        // Определяем категорию по префиксу типа события
+        
         for (const [prefix, category] of Object.entries({
             'order_': EVENT_CATEGORIES.LIFECYCLE,
             'master_': EVENT_CATEGORIES.ASSIGNMENT,
@@ -707,7 +707,7 @@ class OrderHistoryModel {
         return categoryMap[eventType] || EVENT_CATEGORIES.SYSTEM;
     }
 
-    // Генерация краткого описания события
+    
     generateEventSummary(event) {
         const summaries = {
             [HISTORY_EVENT_TYPES.ORDER_CREATED]: 'Заказ создан',
@@ -720,7 +720,7 @@ class OrderHistoryModel {
         return summaries[event.eventType] || event.eventType;
     }
 
-    // Мягкое удаление записи
+    
     async softDelete(historyId) {
         return await this.collection.updateOne(
             { _id: new ObjectId(historyId) },
@@ -739,7 +739,7 @@ class OrderHistoryModel {
     }
 }
 
-// Экспортируем
+
 module.exports = {
     OrderHistoryModel,
     HISTORY_EVENT_TYPES,

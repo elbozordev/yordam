@@ -1,4 +1,4 @@
-// src/services/payment/payment.service.js
+
 
 'use strict';
 
@@ -33,10 +33,7 @@ const {
 const PaymentError = require('../../utils/errors/payment-error');
 const { EVENT_TYPES } = require('../../queues/publishers/event.publisher');
 
-/**
- * Основной сервис для обработки платежей
- * Управляет жизненным циклом платежей, интеграцией с провайдерами
- */
+
 class PaymentService {
     constructor(
         paymentModel,
@@ -63,31 +60,31 @@ class PaymentService {
         this.redis = redis;
         this.logger = logger;
 
-        // Конфигурация
+        
         this.config = {
-            // Идемпотентность
+            
             idempotency: {
                 enabled: true,
-                ttl: 86400,  // 24 часа
+                ttl: 86400,  
                 keyPrefix: 'payment:idempotency:'
             },
 
-            // Безопасность
+            
             security: {
                 maxPaymentAttempts: 3,
                 fraudCheckEnabled: true,
-                requirePinForLargeAmounts: 1000000, // 1M UZS
-                doubleSpendProtectionWindow: 5000    // 5 секунд
+                requirePinForLargeAmounts: 1000000, 
+                doubleSpendProtectionWindow: 5000    
             },
 
-            // Таймауты
+            
             timeouts: {
                 ...PAYMENT_TIMEOUTS,
-                webhookProcessing: 30000,  // 30 секунд
-                providerResponse: 60000    // 60 секунд
+                webhookProcessing: 30000,  
+                providerResponse: 60000    
             },
 
-            // Провайдеры
+            
             providers: {
                 payme: {
                     enabled: true,
@@ -103,7 +100,7 @@ class PaymentService {
                 }
             },
 
-            // Повторные попытки
+            
             retry: {
                 maxAttempts: 3,
                 backoffMultiplier: 2,
@@ -111,34 +108,32 @@ class PaymentService {
             }
         };
 
-        // Карта провайдеров
+        
         this.providers = new Map();
         this.initializeProviders();
     }
 
-    /**
-     * Создание платежа для заказа
-     */
+    
     async createOrderPayment(orderId, paymentData) {
         try {
-            // Проверяем идемпотентность
+            
             if (paymentData.idempotencyKey) {
                 const existing = await this.checkIdempotency(paymentData.idempotencyKey);
                 if (existing) return existing;
             }
 
-            // Получаем заказ
+            
             const order = await this.orderModel.findById(orderId);
             if (!order) {
                 throw PaymentError.orderNotFound(orderId);
             }
 
-            // Валидация статуса заказа
+            
             if (!this.canCreatePayment(order)) {
                 throw PaymentError.invalidOrderStatus(order.status);
             }
 
-            // Валидация метода оплаты
+            
             if (!this.isValidPaymentMethod(paymentData.method)) {
                 throw PaymentError.invalidPaymentMethod(
                     paymentData.method,
@@ -146,13 +141,13 @@ class PaymentService {
                 );
             }
 
-            // Расчет суммы и комиссий
+            
             const amount = this.calculatePaymentAmount(order, paymentData);
 
-            // Проверка лимитов
+            
             await this.validatePaymentLimits(amount, paymentData.method);
 
-            // Создаем платеж
+            
             const payment = await this.paymentModel.create({
                 type: PAYMENT_TYPES.ORDER_PAYMENT,
                 status: PAYMENT_STATUS.PENDING,
@@ -191,7 +186,7 @@ class PaymentService {
                 security: {
                     ipAddress: paymentData.ipAddress,
                     deviceFingerprint: paymentData.deviceFingerprint,
-                    riskScore: 0 // Будет рассчитан
+                    riskScore: 0 
                 },
 
                 metadata: {
@@ -201,12 +196,12 @@ class PaymentService {
                 }
             });
 
-            // Сохраняем ключ идемпотентности
+            
             if (paymentData.idempotencyKey) {
                 await this.saveIdempotency(paymentData.idempotencyKey, payment);
             }
 
-            // Обновляем статус заказа
+            
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -217,7 +212,7 @@ class PaymentService {
                 }
             );
 
-            // Публикуем событие
+            
             await this.eventPublisher.publish(EVENT_TYPES.PAYMENT_INITIATED, {
                 paymentId: payment._id,
                 orderId: order._id,
@@ -226,14 +221,14 @@ class PaymentService {
                 method: paymentData.method
             });
 
-            // Отправляем уведомление
+            
             await this.notificationService.sendPaymentNotification(
                 order.customer.userId,
                 'payment_created',
                 { payment, order }
             );
 
-            // Логируем
+            
             await this.audit.logPayment(
                 'PAYMENT_CREATED',
                 payment,
@@ -242,15 +237,15 @@ class PaymentService {
                 { orderId }
             );
 
-            // Начинаем обработку в зависимости от метода
+            
             if (paymentData.method === PAYMENT_METHODS.WALLET) {
-                // Для кошелька сразу обрабатываем
+                
                 return await this.processWalletPayment(payment);
             } else if (paymentData.method === PAYMENT_METHODS.CASH) {
-                // Для наличных ждем подтверждения
+                
                 return payment;
             } else {
-                // Для карт и e-wallets инициируем через провайдера
+                
                 return await this.initiateProviderPayment(payment, paymentData);
             }
 
@@ -265,17 +260,15 @@ class PaymentService {
         }
     }
 
-    /**
-     * Обработка платежа через кошелек платформы
-     */
+    
     async processWalletPayment(payment) {
         try {
-            // Получаем кошелек пользователя
+            
             const wallet = await this.walletService.getUserWallet(
                 payment.references.userId
             );
 
-            // Проверяем баланс
+            
             const balance = await this.walletService.getBalance(wallet._id);
             if (balance.available.main < payment.amount.final.value) {
                 throw PaymentError.insufficientBalance(
@@ -284,13 +277,13 @@ class PaymentService {
                 );
             }
 
-            // Обновляем статус платежа
+            
             await this.updatePaymentStatus(
                 payment._id,
                 PAYMENT_STATUS.PROCESSING
             );
 
-            // Списываем с кошелька
+            
             const withdrawal = await this.walletService.withdraw(
                 wallet._id,
                 payment.amount.final.value,
@@ -301,7 +294,7 @@ class PaymentService {
                 }
             );
 
-            // Создаем транзакцию
+            
             const transaction = await this.createTransaction({
                 payment,
                 type: PAYMENT_TYPES.ORDER_PAYMENT,
@@ -314,7 +307,7 @@ class PaymentService {
                 }
             });
 
-            // Обновляем платеж
+            
             payment = await this.completePayment(payment._id, {
                 transactionId: transaction._id,
                 providerData: {
@@ -326,7 +319,7 @@ class PaymentService {
             return payment;
 
         } catch (error) {
-            // Отменяем платеж при ошибке
+            
             await this.failPayment(payment._id, {
                 errorCode: error.code || PAYMENT_ERROR_CODES.PROCESSING_ERROR,
                 errorMessage: error.message
@@ -336,9 +329,7 @@ class PaymentService {
         }
     }
 
-    /**
-     * Инициация платежа через внешнего провайдера
-     */
+    
     async initiateProviderPayment(payment, paymentData) {
         try {
             const provider = this.getProvider(payment.method.provider);
@@ -346,13 +337,13 @@ class PaymentService {
                 throw new Error(`Provider ${payment.method.provider} not configured`);
             }
 
-            // Обновляем статус
+            
             await this.updatePaymentStatus(
                 payment._id,
                 PAYMENT_STATUS.PROCESSING
             );
 
-            // Инициируем платеж у провайдера
+            
             const providerResponse = await provider.initiatePayment({
                 paymentId: payment.paymentId,
                 amount: payment.amount.final.value,
@@ -365,7 +356,7 @@ class PaymentService {
                 }
             });
 
-            // Сохраняем данные провайдера
+            
             payment = await this.paymentModel.findOneAndUpdate(
                 { _id: payment._id },
                 {
@@ -379,7 +370,7 @@ class PaymentService {
                 { returnDocument: 'after' }
             );
 
-            // Возвращаем с URL для редиректа (если есть)
+            
             return {
                 ...payment.toObject(),
                 redirectUrl: providerResponse.redirectUrl,
@@ -396,9 +387,7 @@ class PaymentService {
         }
     }
 
-    /**
-     * Подтверждение наличного платежа
-     */
+    
     async confirmCashPayment(paymentId, confirmationData) {
         try {
             const payment = await this.paymentModel.findById(paymentId);
@@ -406,7 +395,7 @@ class PaymentService {
                 throw PaymentError.paymentNotFound(paymentId);
             }
 
-            // Валидация
+            
             if (payment.method.type !== PAYMENT_METHODS.CASH) {
                 throw new Error('Payment method is not cash');
             }
@@ -416,14 +405,14 @@ class PaymentService {
                 throw PaymentError.invalidPaymentStatus(payment.status);
             }
 
-            // Обновляем подтверждение
+            
             payment = await this.paymentModel.confirmPayment(paymentId, {
                 confirmedBy: confirmationData.masterId,
                 location: confirmationData.location,
                 signature: confirmationData.signature
             });
 
-            // Создаем транзакцию
+            
             const transaction = await this.createTransaction({
                 payment,
                 type: PAYMENT_TYPES.ORDER_PAYMENT,
@@ -438,7 +427,7 @@ class PaymentService {
                 }
             });
 
-            // Завершаем платеж
+            
             payment = await this.completePayment(payment._id, {
                 transactionId: transaction._id,
                 confirmedBy: confirmationData.masterId
@@ -457,12 +446,10 @@ class PaymentService {
         }
     }
 
-    /**
-     * Обработка webhook от провайдера
-     */
+    
     async processProviderWebhook(provider, webhookData, signature) {
         try {
-            // Проверяем подпись
+            
             const providerInstance = this.getProvider(provider);
             if (!providerInstance) {
                 throw new Error(`Unknown provider: ${provider}`);
@@ -477,7 +464,7 @@ class PaymentService {
                 throw new Error('Invalid webhook signature');
             }
 
-            // Получаем платеж
+            
             const paymentId = webhookData.metadata?.paymentId ||
                 webhookData.merchantTransactionId;
 
@@ -497,7 +484,7 @@ class PaymentService {
                 return;
             }
 
-            // Сохраняем webhook
+            
             await this.paymentModel.updateOne(
                 { _id: payment._id },
                 {
@@ -513,7 +500,7 @@ class PaymentService {
                 }
             );
 
-            // Обрабатываем в зависимости от статуса
+            
             switch (webhookData.status) {
                 case 'success':
                 case 'completed':
@@ -531,7 +518,7 @@ class PaymentService {
 
                 case 'pending':
                 case 'processing':
-                    // Игнорируем промежуточные статусы
+                    
                     break;
 
                 default:
@@ -553,9 +540,7 @@ class PaymentService {
         }
     }
 
-    /**
-     * Отмена платежа
-     */
+    
     async cancelPayment(paymentId, reason, cancelledBy) {
         try {
             const payment = await this.paymentModel.findById(paymentId);
@@ -563,12 +548,12 @@ class PaymentService {
                 throw PaymentError.paymentNotFound(paymentId);
             }
 
-            // Проверяем возможность отмены
+            
             if (STATUS_GROUPS.FINAL.includes(payment.status)) {
                 throw PaymentError.cannotCancelFinalStatus(payment.status);
             }
 
-            // Обновляем статус
+            
             const updatedPayment = await this.updatePaymentStatus(
                 paymentId,
                 PAYMENT_STATUS.CANCELLED,
@@ -578,7 +563,7 @@ class PaymentService {
                 }
             );
 
-            // Отменяем у провайдера если нужно
+            
             if (payment.providerData?.transactionId &&
                 payment.method.provider !== PAYMENT_PROVIDERS.INTERNAL) {
 
@@ -594,12 +579,12 @@ class PaymentService {
                 }
             }
 
-            // Возвращаем холды если были
+            
             if (payment.references.walletIds?.source) {
-                // TODO: Реализовать возврат холдов
+                
             }
 
-            // Обновляем заказ
+            
             if (payment.references.orderId) {
                 await this.orderModel.updateOne(
                     { _id: payment.references.orderId },
@@ -612,7 +597,7 @@ class PaymentService {
                 );
             }
 
-            // Публикуем событие
+            
             await this.eventPublisher.publish(EVENT_TYPES.PAYMENT_CANCELLED, {
                 paymentId: payment._id,
                 orderId: payment.references.orderId,
@@ -620,14 +605,14 @@ class PaymentService {
                 cancelledBy
             });
 
-            // Уведомляем пользователя
+            
             await this.notificationService.sendPaymentNotification(
                 payment.references.userId,
                 'payment_cancelled',
                 { payment: updatedPayment, reason }
             );
 
-            // Логируем
+            
             await this.audit.logPayment(
                 'PAYMENT_CANCELLED',
                 updatedPayment,
@@ -649,9 +634,7 @@ class PaymentService {
         }
     }
 
-    /**
-     * Создание возврата
-     */
+    
     async createRefund(paymentId, refundData) {
         try {
             const payment = await this.paymentModel.findById(paymentId);
@@ -659,12 +642,12 @@ class PaymentService {
                 throw PaymentError.paymentNotFound(paymentId);
             }
 
-            // Валидация
+            
             if (payment.status !== PAYMENT_STATUS.COMPLETED) {
                 throw PaymentError.cannotRefundIncompletePayment(payment.status);
             }
 
-            // Проверяем период возврата
+            
             const refundPeriod = this.config.timeouts.REFUND_PERIOD;
             if (Date.now() - payment.timestamps.completedAt > refundPeriod) {
                 throw PaymentError.refundPeriodExpired(
@@ -673,21 +656,21 @@ class PaymentService {
                 );
             }
 
-            // Создаем возврат
+            
             const refund = await this.paymentModel.createRefund(paymentId, refundData);
 
-            // Обрабатываем возврат в зависимости от метода
+            
             if (payment.method.type === PAYMENT_METHODS.WALLET) {
                 await this.processWalletRefund(payment, refund);
             } else if (payment.method.type === PAYMENT_METHODS.CASH) {
-                // Для наличных возврат происходит вручную
+                
                 refund.status = 'manual_required';
             } else {
-                // Для провайдеров инициируем возврат
+                
                 await this.processProviderRefund(payment, refund);
             }
 
-            // Публикуем событие
+            
             await this.eventPublisher.publish(EVENT_TYPES.PAYMENT_REFUNDED, {
                 paymentId: payment._id,
                 refundId: refund.refundId,
@@ -695,7 +678,7 @@ class PaymentService {
                 reason: refund.reason
             });
 
-            // Уведомляем
+            
             await this.notificationService.sendPaymentNotification(
                 payment.references.userId,
                 'refund_initiated',
@@ -715,26 +698,24 @@ class PaymentService {
         }
     }
 
-    /**
-     * Получение информации о платеже
-     */
+    
     async getPayment(paymentId) {
         const payment = await this.paymentModel.findById(paymentId);
         if (!payment) {
             throw PaymentError.paymentNotFound(paymentId);
         }
 
-        // Обогащаем дополнительной информацией
+        
         const enriched = payment.toObject();
 
-        // Добавляем информацию о транзакциях
+        
         if (payment.references.transactions?.main) {
             enriched.transaction = await this.transactionModel.findById(
                 payment.references.transactions.main
             );
         }
 
-        // Проверяем истечение
+        
         if (payment.status === PAYMENT_STATUS.PENDING) {
             enriched.isExpired = isPaymentExpired(
                 payment.timestamps.createdAt,
@@ -745,9 +726,7 @@ class PaymentService {
         return enriched;
     }
 
-    /**
-     * Получение списка платежей
-     */
+    
     async getPayments(filters = {}, options = {}) {
         const {
             userId,
@@ -806,9 +785,7 @@ class PaymentService {
         };
     }
 
-    /**
-     * Повторная попытка платежа
-     */
+    
     async retryPayment(paymentId) {
         try {
             const payment = await this.paymentModel.findById(paymentId);
@@ -816,12 +793,12 @@ class PaymentService {
                 throw PaymentError.paymentNotFound(paymentId);
             }
 
-            // Проверяем возможность повтора
+            
             if (!payment.isRetryable || !payment.isRetryable()) {
                 throw new Error('Payment is not retryable');
             }
 
-            // Увеличиваем счетчик попыток
+            
             await this.paymentModel.updateOne(
                 { _id: payment._id },
                 {
@@ -833,7 +810,7 @@ class PaymentService {
                 }
             );
 
-            // Повторяем в зависимости от метода
+            
             if (payment.method.provider !== PAYMENT_PROVIDERS.INTERNAL) {
                 await this.retryProviderPayment(payment);
             } else if (payment.method.type === PAYMENT_METHODS.WALLET) {
@@ -843,7 +820,7 @@ class PaymentService {
             return await this.paymentModel.findById(paymentId);
 
         } catch (error) {
-            // Обновляем статус и следующую попытку
+            
             const nextRetryAt = this.calculateNextRetryTime(
                 payment.processing.attempts + 1
             );
@@ -873,9 +850,7 @@ class PaymentService {
         }
     }
 
-    /**
-     * Массовая обработка истекших платежей
-     */
+    
     async processExpiredPayments() {
         try {
             const expiredPayments = await this.paymentModel.collection.find({
@@ -922,11 +897,9 @@ class PaymentService {
         }
     }
 
-    /**
-     * Вспомогательные методы
-     */
+    
 
-    // Проверка возможности создания платежа для заказа
+    
     canCreatePayment(order) {
         const allowedStatuses = [
             ORDER_STATUS.NEW,
@@ -940,25 +913,25 @@ class PaymentService {
                 order.payment.status === PAYMENT_STATUS.FAILED);
     }
 
-    // Валидация метода оплаты
+    
     isValidPaymentMethod(method) {
         return Object.values(PAYMENT_METHODS).includes(method);
     }
 
-    // Определение провайдера
+    
     determineProvider(method) {
         const providerMap = {
             [PAYMENT_METHODS.CASH]: PAYMENT_PROVIDERS.INTERNAL,
             [PAYMENT_METHODS.WALLET]: PAYMENT_PROVIDERS.INTERNAL,
             [PAYMENT_METHODS.PAYME]: PAYMENT_PROVIDERS.PAYME,
             [PAYMENT_METHODS.CLICK]: PAYMENT_PROVIDERS.CLICK,
-            [PAYMENT_METHODS.CARD]: PAYMENT_PROVIDERS.PAYME // По умолчанию
+            [PAYMENT_METHODS.CARD]: PAYMENT_PROVIDERS.PAYME 
         };
 
         return providerMap[method] || PAYMENT_PROVIDERS.INTERNAL;
     }
 
-    // Получение типа подтверждения
+    
     getConfirmationType(method) {
         const confirmationMap = {
             [PAYMENT_METHODS.CASH]: CONFIRMATION_TYPES.MANUAL,
@@ -969,12 +942,12 @@ class PaymentService {
         return confirmationMap[method] || CONFIRMATION_TYPES.AUTOMATIC;
     }
 
-    // Проверка необходимости подтверждения
+    
     isConfirmationRequired(method) {
         return method === PAYMENT_METHODS.CASH;
     }
 
-    // Расчет суммы платежа
+    
     calculatePaymentAmount(order, paymentData) {
         const amount = {
             original: order.pricing.calculation.total,
@@ -987,7 +960,7 @@ class PaymentService {
             final: order.pricing.calculation.total
         };
 
-        // Комиссия провайдера (если берется с клиента)
+        
         if (paymentData.method !== PAYMENT_METHODS.CASH &&
             paymentData.method !== PAYMENT_METHODS.WALLET) {
 
@@ -1007,13 +980,13 @@ class PaymentService {
         return amount;
     }
 
-    // Валидация лимитов платежа
+    
     async validatePaymentLimits(amount, method) {
-        // TODO: Реализовать проверку лимитов
+        
         return true;
     }
 
-    // Обновление статуса платежа
+    
     async updatePaymentStatus(paymentId, newStatus, details = {}) {
         const payment = await this.paymentModel.updateStatus(
             paymentId,
@@ -1021,7 +994,7 @@ class PaymentService {
             details
         );
 
-        // Публикуем событие об изменении статуса
+        
         await this.eventPublisher.publish(EVENT_TYPES.PAYMENT_STATUS_CHANGED, {
             paymentId,
             oldStatus: payment.status,
@@ -1032,7 +1005,7 @@ class PaymentService {
         return payment;
     }
 
-    // Завершение платежа
+    
     async completePayment(paymentId, completionData) {
         const payment = await this.updatePaymentStatus(
             paymentId,
@@ -1040,7 +1013,7 @@ class PaymentService {
             completionData
         );
 
-        // Обрабатываем комиссию
+        
         if (payment.references.orderId) {
             await this.commissionService.processOrderCommission(
                 payment.references.orderId,
@@ -1050,7 +1023,7 @@ class PaymentService {
             );
         }
 
-        // Обновляем заказ
+        
         await this.orderModel.updateOne(
             { _id: payment.references.orderId },
             {
@@ -1062,21 +1035,21 @@ class PaymentService {
             }
         );
 
-        // Публикуем событие
+        
         await this.eventPublisher.publish(EVENT_TYPES.PAYMENT_COMPLETED, {
             paymentId: payment._id,
             orderId: payment.references.orderId,
             amount: payment.amount.final.value
         });
 
-        // Уведомляем
+        
         await this.notificationService.sendPaymentNotification(
             payment.references.userId,
             'payment_completed',
             { payment }
         );
 
-        // Логируем
+        
         await this.audit.logPayment(
             'PAYMENT_COMPLETED',
             payment,
@@ -1088,7 +1061,7 @@ class PaymentService {
         return payment;
     }
 
-    // Отметка платежа как неудачного
+    
     async failPayment(paymentId, failureData) {
         const payment = await this.updatePaymentStatus(
             paymentId,
@@ -1096,7 +1069,7 @@ class PaymentService {
             failureData
         );
 
-        // Обновляем заказ
+        
         if (payment.references.orderId) {
             await this.orderModel.updateOne(
                 { _id: payment.references.orderId },
@@ -1110,7 +1083,7 @@ class PaymentService {
             );
         }
 
-        // Публикуем событие
+        
         await this.eventPublisher.publish(EVENT_TYPES.PAYMENT_FAILED, {
             paymentId: payment._id,
             orderId: payment.references.orderId,
@@ -1118,7 +1091,7 @@ class PaymentService {
             errorMessage: failureData.errorMessage
         });
 
-        // Уведомляем
+        
         await this.notificationService.sendPaymentNotification(
             payment.references.userId,
             'payment_failed',
@@ -1128,7 +1101,7 @@ class PaymentService {
         return payment;
     }
 
-    // Истечение платежа
+    
     async expirePayment(paymentId) {
         return await this.updatePaymentStatus(
             paymentId,
@@ -1137,7 +1110,7 @@ class PaymentService {
         );
     }
 
-    // Создание транзакции
+    
     async createTransaction(data) {
         return await this.transactionModel.create({
             type: data.type,
@@ -1166,9 +1139,9 @@ class PaymentService {
         });
     }
 
-    // Обработка успешного ответа от провайдера
+    
     async handleProviderSuccess(payment, webhookData) {
-        // Создаем транзакцию
+        
         const transaction = await this.createTransaction({
             payment,
             type: PAYMENT_TYPES.ORDER_PAYMENT,
@@ -1184,14 +1157,14 @@ class PaymentService {
             }
         });
 
-        // Завершаем платеж
+        
         await this.completePayment(payment._id, {
             transactionId: transaction._id,
             providerData: webhookData
         });
     }
 
-    // Обработка неудачного ответа от провайдера
+    
     async handleProviderFailure(payment, webhookData) {
         await this.failPayment(payment._id, {
             errorCode: webhookData.errorCode || PAYMENT_ERROR_CODES.PROVIDER_ERROR,
@@ -1200,7 +1173,7 @@ class PaymentService {
         });
     }
 
-    // Обработка отмены от провайдера
+    
     async handleProviderCancellation(payment, webhookData) {
         await this.cancelPayment(
             payment._id,
@@ -1209,7 +1182,7 @@ class PaymentService {
         );
     }
 
-    // Обработка возврата через кошелек
+    
     async processWalletRefund(payment, refund) {
         const wallet = await this.walletService.getUserWallet(
             payment.references.userId
@@ -1230,7 +1203,7 @@ class PaymentService {
         refund.processedAt = new Date();
     }
 
-    // Обработка возврата через провайдера
+    
     async processProviderRefund(payment, refund) {
         const provider = this.getProvider(payment.method.provider);
 
@@ -1251,7 +1224,7 @@ class PaymentService {
         }
     }
 
-    // Повтор платежа через провайдера
+    
     async retryProviderPayment(payment) {
         const provider = this.getProvider(payment.method.provider);
 
@@ -1266,18 +1239,18 @@ class PaymentService {
         }
     }
 
-    // Расчет времени следующей попытки
+    
     calculateNextRetryTime(attemptNumber) {
         const delay = Math.min(
             this.config.retry.initialDelay *
             Math.pow(this.config.retry.backoffMultiplier, attemptNumber - 1),
-            300000 // Максимум 5 минут
+            300000 
         );
 
         return new Date(Date.now() + delay);
     }
 
-    // Проверка идемпотентности
+    
     async checkIdempotency(key) {
         const cached = await this.redis.get(
             `${this.config.idempotency.keyPrefix}${key}`
@@ -1286,7 +1259,7 @@ class PaymentService {
         return cached ? JSON.parse(cached) : null;
     }
 
-    // Сохранение ключа идемпотентности
+    
     async saveIdempotency(key, payment) {
         await this.redis.setex(
             `${this.config.idempotency.keyPrefix}${key}`,
@@ -1295,19 +1268,19 @@ class PaymentService {
         );
     }
 
-    // Инициализация провайдеров
+    
     initializeProviders() {
-        // TODO: Инициализировать реальные провайдеры
-        // this.providers.set(PAYMENT_PROVIDERS.PAYME, new PaymeProvider(this.config.providers.payme));
-        // this.providers.set(PAYMENT_PROVIDERS.CLICK, new ClickProvider(this.config.providers.click));
+        
+        
+        
     }
 
-    // Получение провайдера
+    
     getProvider(providerName) {
         return this.providers.get(providerName);
     }
 
-    // Генерация подписи для webhook
+    
     generateWebhookSignature(data, secret) {
         return crypto
             .createHmac('sha256', secret)

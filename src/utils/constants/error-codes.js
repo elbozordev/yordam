@@ -1,15 +1,12 @@
-// src/utils/constants/error-codes.js
+
 
 'use strict';
 
-/**
- * Централизованный файл с кодами ошибок для всей системы Yordam24
- * Структурирован по категориям и включает HTTP статусы
- */
 
-// ============= КАТЕГОРИИ ОШИБОК =============
 
-// Общие системные ошибки (5xx)
+
+
+
 const SYSTEM_ERRORS = {
     INTERNAL_ERROR: {
         code: 'INTERNAL_ERROR',
@@ -48,7 +45,7 @@ const SYSTEM_ERRORS = {
     }
 };
 
-// Ошибки валидации (4xx)
+
 const VALIDATION_ERRORS = {
     VALIDATION_ERROR: {
         code: 'VALIDATION_ERROR',
@@ -102,7 +99,7 @@ const VALIDATION_ERRORS = {
     }
 };
 
-// Ошибки аутентификации (401)
+
 const AUTH_ERRORS = {
     UNAUTHORIZED: {
         code: 'UNAUTHORIZED',
@@ -156,7 +153,7 @@ const AUTH_ERRORS = {
     }
 };
 
-// Ошибки авторизации (403)
+
 const PERMISSION_ERRORS = {
     FORBIDDEN: {
         code: 'FORBIDDEN',
@@ -215,7 +212,7 @@ const PERMISSION_ERRORS = {
     }
 };
 
-// Ошибки ресурсов (404)
+
 const RESOURCE_ERRORS = {
     NOT_FOUND: {
         code: 'NOT_FOUND',
@@ -269,7 +266,7 @@ const RESOURCE_ERRORS = {
     }
 };
 
-// Конфликты и дубликаты (409)
+
 const CONFLICT_ERRORS = {
     ALREADY_EXISTS: {
         code: 'ALREADY_EXISTS',
@@ -308,7 +305,7 @@ const CONFLICT_ERRORS = {
     }
 };
 
-// Ошибки ограничений (429)
+
 const RATE_LIMIT_ERRORS = {
     RATE_LIMIT_EXCEEDED: {
         code: 'RATE_LIMIT_EXCEEDED',
@@ -332,7 +329,7 @@ const RATE_LIMIT_ERRORS = {
     }
 };
 
-// OTP ошибки
+
 const OTP_ERRORS = {
     OTP_INVALID: {
         code: 'OTP_INVALID',
@@ -356,7 +353,7 @@ const OTP_ERRORS = {
     }
 };
 
-// Бизнес-логика: Заказы
+
 const ORDER_ERRORS = {
     ORDER_CANCELLED: {
         code: 'ORDER_CANCELLED',
@@ -410,7 +407,7 @@ const ORDER_ERRORS = {
     }
 };
 
-// Бизнес-логика: Мастера
+
 const MASTER_ERRORS = {
     MASTER_OFFLINE: {
         code: 'MASTER_OFFLINE',
@@ -449,7 +446,7 @@ const MASTER_ERRORS = {
     }
 };
 
-// Бизнес-логика: Платежи
+
 const PAYMENT_ERRORS = {
     PAYMENT_REQUIRED: {
         code: 'PAYMENT_REQUIRED',
@@ -503,7 +500,7 @@ const PAYMENT_ERRORS = {
     }
 };
 
-// Бизнес-логика: СТО
+
 const STO_ERRORS = {
     STO_NOT_VERIFIED: {
         code: 'STO_NOT_VERIFIED',
@@ -532,7 +529,7 @@ const STO_ERRORS = {
     }
 };
 
-// Бизнес-логика: Геолокация
+
 const GEO_ERRORS = {
     LOCATION_REQUIRED: {
         code: 'LOCATION_REQUIRED',
@@ -561,7 +558,7 @@ const GEO_ERRORS = {
     }
 };
 
-// ============= ОБЪЕДИНЕННЫЙ СЛОВАРЬ =============
+
 
 const ERROR_CODES = {
     ...SYSTEM_ERRORS,
@@ -579,10 +576,10 @@ const ERROR_CODES = {
     ...GEO_ERRORS
 };
 
-// ============= СООБЩЕНИЯ ОБ ОШИБКАХ =============
+
 
 const ERROR_MESSAGES = {
-    // Системные ошибки
+    
     INTERNAL_ERROR: {
         ru: 'Внутренняя ошибка сервера',
         uz: 'Server ichki xatosi',
@@ -599,7 +596,7 @@ const ERROR_MESSAGES = {
         en: 'Service temporarily unavailable'
     },
 
-    // Валидация
+    
     VALIDATION_ERROR: {
         ru: 'Ошибка валидации данных',
         uz: 'Ma\'lumotlarni tekshirishda xatolik',
@@ -616,7 +613,7 @@ const ERROR_MESSAGES = {
         en: 'Invalid phone number format'
     },
 
-    // Аутентификация
+    
     UNAUTHORIZED: {
         ru: 'Требуется авторизация',
         uz: 'Avtorizatsiya talab qilinadi',
@@ -633,7 +630,7 @@ const ERROR_MESSAGES = {
         en: 'Token has expired'
     },
 
-    // Авторизация
+    
     FORBIDDEN: {
         ru: 'Доступ запрещен',
         uz: 'Kirish taqiqlangan',
@@ -650,7 +647,7 @@ const ERROR_MESSAGES = {
         en: 'Account blocked'
     },
 
-    // Ресурсы
+    
     NOT_FOUND: {
         ru: 'Ресурс не найден',
         uz: 'Resurs topilmadi',
@@ -667,7 +664,7 @@ const ERROR_MESSAGES = {
         en: 'Order not found'
     },
 
-    // Конфликты
+    
     ALREADY_EXISTS: {
         ru: 'Уже существует',
         uz: 'Allaqachon mavjud',
@@ -679,7 +676,7 @@ const ERROR_MESSAGES = {
         en: 'Phone number already registered'
     },
 
-    // Rate limiting
+    
     RATE_LIMIT_EXCEEDED: {
         ru: 'Слишком много запросов. Попробуйте позже',
         uz: 'Juda ko\'p so\'rovlar. Keyinroq urinib ko\'ring',
@@ -691,7 +688,7 @@ const ERROR_MESSAGES = {
         en: 'Too many attempts'
     },
 
-    // OTP
+    
     OTP_INVALID: {
         ru: 'Неверный код подтверждения',
         uz: 'Tasdiqlash kodi noto\'g\'ri',
@@ -703,7 +700,7 @@ const ERROR_MESSAGES = {
         en: 'Verification code expired'
     },
 
-    // Заказы
+    
     NO_MASTERS_AVAILABLE: {
         ru: 'Нет доступных мастеров',
         uz: 'Mavjud ustalar yo\'q',
@@ -720,7 +717,7 @@ const ERROR_MESSAGES = {
         en: 'Master search time expired'
     },
 
-    // Платежи
+    
     INSUFFICIENT_BALANCE: {
         ru: 'Недостаточно средств',
         uz: 'Mablag\' yetarli emas',
@@ -732,7 +729,7 @@ const ERROR_MESSAGES = {
         en: 'Payment failed'
     },
 
-    // Геолокация
+    
     LOCATION_REQUIRED: {
         ru: 'Необходимо указать местоположение',
         uz: 'Joylashuvni ko\'rsatish kerak',
@@ -745,34 +742,26 @@ const ERROR_MESSAGES = {
     }
 };
 
-// ============= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =============
 
-/**
- * Получение информации об ошибке по коду
- */
+
+
 function getErrorInfo(code) {
     return ERROR_CODES[code] || null;
 }
 
-/**
- * Получение HTTP статуса по коду ошибки
- */
+
 function getHttpStatus(code) {
     const errorInfo = getErrorInfo(code);
     return errorInfo ? errorInfo.httpStatus : 500;
 }
 
-/**
- * Получение категории ошибки
- */
+
 function getErrorCategory(code) {
     const errorInfo = getErrorInfo(code);
     return errorInfo ? errorInfo.category : 'unknown';
 }
 
-/**
- * Получение сообщения об ошибке
- */
+
 function getErrorMessage(code, lang = 'ru') {
     const messages = ERROR_MESSAGES[code];
     if (!messages) return code;
@@ -780,41 +769,31 @@ function getErrorMessage(code, lang = 'ru') {
     return messages[lang] || messages.ru || code;
 }
 
-/**
- * Проверка, является ли код валидным
- */
+
 function isValidErrorCode(code) {
     return !!ERROR_CODES[code];
 }
 
-/**
- * Получение всех кодов ошибок по категории
- */
+
 function getErrorsByCategory(category) {
     return Object.entries(ERROR_CODES)
         .filter(([_, info]) => info.category === category)
         .map(([code]) => code);
 }
 
-/**
- * Проверка, является ли ошибка клиентской (4xx)
- */
+
 function isClientError(code) {
     const status = getHttpStatus(code);
     return status >= 400 && status < 500;
 }
 
-/**
- * Проверка, является ли ошибка серверной (5xx)
- */
+
 function isServerError(code) {
     const status = getHttpStatus(code);
     return status >= 500;
 }
 
-/**
- * Создание объекта ошибки
- */
+
 function createError(code, details = null, lang = 'ru') {
     const errorInfo = getErrorInfo(code);
     if (!errorInfo) {
@@ -835,9 +814,7 @@ function createError(code, details = null, lang = 'ru') {
     };
 }
 
-/**
- * Форматирование ошибки для ответа клиенту
- */
+
 function formatErrorResponse(code, details = null, lang = 'ru') {
     const error = createError(code, details, lang);
 
@@ -850,7 +827,7 @@ function formatErrorResponse(code, details = null, lang = 'ru') {
     };
 }
 
-// ============= КАТЕГОРИИ ДЛЯ УДОБСТВА =============
+
 
 const ERROR_CATEGORIES = {
     SYSTEM: 'system',
@@ -868,13 +845,13 @@ const ERROR_CATEGORIES = {
     GEO: 'geo'
 };
 
-// ============= ЭКСПОРТ =============
+
 
 module.exports = {
-    // Все коды ошибок
+    
     ERROR_CODES,
 
-    // Группы ошибок
+    
     SYSTEM_ERRORS,
     VALIDATION_ERRORS,
     AUTH_ERRORS,
@@ -889,13 +866,13 @@ module.exports = {
     STO_ERRORS,
     GEO_ERRORS,
 
-    // Сообщения
+    
     ERROR_MESSAGES,
 
-    // Категории
+    
     ERROR_CATEGORIES,
 
-    // Вспомогательные функции
+    
     getErrorInfo,
     getHttpStatus,
     getErrorCategory,

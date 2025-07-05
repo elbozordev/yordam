@@ -1,11 +1,11 @@
-// src/models/user.model.js
+
 
 'use strict';
 
 const { ObjectId } = require('mongodb');
 const bcrypt = require('bcrypt');
 
-// Константы
+
 const USER_ROLES = {
     CLIENT: 'client',
     MASTER: 'master',
@@ -16,11 +16,11 @@ const USER_ROLES = {
 };
 
 const USER_STATUS = {
-    PENDING: 'pending',         // Ожидает верификации
-    ACTIVE: 'active',          // Активен
-    INACTIVE: 'inactive',      // Неактивен (сам отключил)
-    BLOCKED: 'blocked',        // Заблокирован администрацией
-    DELETED: 'deleted'         // Удален (soft delete)
+    PENDING: 'pending',         
+    ACTIVE: 'active',          
+    INACTIVE: 'inactive',      
+    BLOCKED: 'blocked',        
+    DELETED: 'deleted'         
 };
 
 const MASTER_STATUS = {
@@ -30,19 +30,19 @@ const MASTER_STATUS = {
     SUSPENDED: 'suspended'
 };
 
-// Схема пользователя
-const userSchema = {
-    // Основные поля
-    _id: ObjectId,
-    phone: String,              // +998901234567 - уникальный
-    email: String,              // Опционально, для уведомлений
-    password: String,           // Хеш пароля (bcrypt)
 
-    // Профиль
+const userSchema = {
+    
+    _id: ObjectId,
+    phone: String,              
+    email: String,              
+    password: String,           
+
+    
     name: {
         first: String,
         last: String,
-        middle: String          // Отчество
+        middle: String          
     },
 
     avatar: {
@@ -52,29 +52,29 @@ const userSchema = {
     },
 
     birthDate: Date,
-    gender: String,             // male, female
-    language: String,           // ru, uz, en
+    gender: String,             
+    language: String,           
 
-    // Роль и статус
-    role: String,               // Из USER_ROLES
-    status: String,             // Из USER_STATUS
+    
+    role: String,               
+    status: String,             
 
-    // Безопасность
-    loginAttempts: Number,      // Счетчик неудачных попыток
-    lockUntil: Date,           // Блокировка до указанного времени
+    
+    loginAttempts: Number,      
+    lockUntil: Date,           
     lastLogin: Date,
     lastLoginIp: String,
 
-    // Верификация
+    
     isPhoneVerified: Boolean,
     isEmailVerified: Boolean,
     phoneVerifiedAt: Date,
     emailVerifiedAt: Date,
 
-    // Устройства
+    
     devices: [{
         deviceId: String,
-        deviceType: String,     // ios, android, web
+        deviceType: String,     
         deviceModel: String,
         appVersion: String,
         pushToken: String,
@@ -82,15 +82,15 @@ const userSchema = {
         addedAt: Date
     }],
 
-    // Для клиентов
+    
     clientData: {
-        vehicles: [ObjectId],   // Ссылки на коллекцию vehicles
+        vehicles: [ObjectId],   
         favoriteServices: [String],
         defaultLocation: {
             address: String,
             coordinates: {
                 type: { type: String, default: 'Point' },
-                coordinates: [Number] // [longitude, latitude]
+                coordinates: [Number] 
             }
         },
         referralCode: String,
@@ -98,13 +98,13 @@ const userSchema = {
         bonusBalance: Number
     },
 
-    // Для мастеров
+    
     masterData: {
-        status: String,         // Из MASTER_STATUS
-        services: [String],     // Массив услуг, которые оказывает
+        status: String,         
+        services: [String],     
 
         documents: [{
-            type: String,       // passport, license, certificate
+            type: String,       
             number: String,
             issuedDate: Date,
             expiryDate: Date,
@@ -127,7 +127,7 @@ const userSchema = {
             name: String,
             polygon: {
                 type: { type: String, default: 'Polygon' },
-                coordinates: [[[Number]]] // GeoJSON polygon
+                coordinates: [[[Number]]] 
             }
         }],
 
@@ -137,8 +137,8 @@ const userSchema = {
                 coordinates: [Number]
             },
             accuracy: Number,
-            heading: Number,    // Направление движения
-            speed: Number,      // Скорость км/ч
+            heading: Number,    
+            speed: Number,      
             updatedAt: Date
         },
 
@@ -146,8 +146,8 @@ const userSchema = {
         lastOnlineAt: Date,
 
         rating: {
-            average: Number,    // 1-5
-            count: Number,      // Количество оценок
+            average: Number,    
+            count: Number,      
             details: {
                 5: Number,
                 4: Number,
@@ -163,8 +163,8 @@ const userSchema = {
             cancelledOrders: Number,
             totalEarnings: Number,
             thisMonthEarnings: Number,
-            averageResponseTime: Number, // В секундах
-            completionRate: Number       // Процент завершенных
+            averageResponseTime: Number, 
+            completionRate: Number       
         },
 
         bankAccount: {
@@ -175,17 +175,17 @@ const userSchema = {
         }
     },
 
-    // Для владельцев и сотрудников СТО
+    
     stoData: {
-        stoId: ObjectId,        // Ссылка на СТО
-        position: String,       // Должность
-        permissions: [String],  // Массив разрешений
+        stoId: ObjectId,        
+        position: String,       
+        permissions: [String],  
 
-        // Для владельцев
+        
         isOwner: Boolean,
-        ownedStos: [ObjectId],  // Если владеет несколькими СТО
+        ownedStos: [ObjectId],  
 
-        // Рабочий график сотрудника
+        
         employeeSchedule: {
             monday: { start: String, end: String, enabled: Boolean },
             tuesday: { start: String, end: String, enabled: Boolean },
@@ -197,15 +197,15 @@ const userSchema = {
         }
     },
 
-    // Для администраторов
+    
     adminData: {
-        level: String,          // operator, manager, admin, super_admin
-        permissions: [String],  // Детальные права доступа
+        level: String,          
+        permissions: [String],  
         assignedRegions: [String],
-        notes: String          // Заметки о сотруднике
+        notes: String          
     },
 
-    // Настройки уведомлений
+    
     notifications: {
         push: {
             enabled: Boolean,
@@ -226,32 +226,32 @@ const userSchema = {
         }
     },
 
-    // Метаданные
+    
     metadata: {
-        source: String,         // app, web, import, admin
+        source: String,         
         registrationIp: String,
         userAgent: String,
         appVersion: String,
-        platform: String        // ios, android, web
+        platform: String        
     },
 
-    // Временные метки
+    
     createdAt: Date,
     updatedAt: Date,
-    deletedAt: Date            // Для soft delete
+    deletedAt: Date            
 };
 
-// Класс для работы с пользователями
+
 class UserModel {
     constructor(db) {
         this.collection = db.collection('users');
         this.setupIndexes();
     }
 
-    // Создание индексов
+    
     async setupIndexes() {
         try {
-            // Уникальные индексы
+            
             await this.collection.createIndex({ phone: 1 }, {
                 unique: true,
                 partialFilterExpression: { phone: { $exists: true } }
@@ -263,27 +263,27 @@ class UserModel {
                 partialFilterExpression: { email: { $exists: true } }
             });
 
-            // Составные индексы
+            
             await this.collection.createIndex({ role: 1, status: 1 });
             await this.collection.createIndex({ 'masterData.isOnline': 1, 'masterData.status': 1 });
             await this.collection.createIndex({ 'masterData.services': 1 });
             await this.collection.createIndex({ 'masterData.rating.average': -1 });
 
-            // Геопространственные индексы
+            
             await this.collection.createIndex({ 'masterData.currentLocation.coordinates': '2dsphere' });
             await this.collection.createIndex({ 'clientData.defaultLocation.coordinates': '2dsphere' });
             await this.collection.createIndex({ 'masterData.serviceZones.polygon': '2dsphere' });
 
-            // Индексы для поиска
+            
             await this.collection.createIndex({ 'name.first': 'text', 'name.last': 'text' });
             await this.collection.createIndex({ createdAt: -1 });
             await this.collection.createIndex({ 'devices.deviceId': 1 });
             await this.collection.createIndex({ 'devices.pushToken': 1 });
 
-            // TTL индекс для автоматического удаления старых удаленных пользователей
+            
             await this.collection.createIndex(
                 { deletedAt: 1 },
-                { expireAfterSeconds: 2592000 } // 30 дней
+                { expireAfterSeconds: 2592000 } 
             );
 
         } catch (error) {
@@ -291,7 +291,7 @@ class UserModel {
         }
     }
 
-    // Создание нового пользователя
+    
     async create(userData) {
         const now = new Date();
 
@@ -299,14 +299,14 @@ class UserModel {
             _id: new ObjectId(),
             ...userData,
 
-            // Defaults
+            
             status: userData.status || USER_STATUS.PENDING,
             loginAttempts: 0,
             isPhoneVerified: false,
             isEmailVerified: false,
             devices: [],
 
-            // Role-specific defaults
+            
             ...(userData.role === USER_ROLES.CLIENT && {
                 clientData: {
                     vehicles: [],
@@ -340,7 +340,7 @@ class UserModel {
                 }
             }),
 
-            // Notifications defaults
+            
             notifications: {
                 push: { enabled: true, orders: true, marketing: false, system: true },
                 sms: { enabled: true, orders: true, marketing: false },
@@ -352,7 +352,7 @@ class UserModel {
             updatedAt: now
         };
 
-        // Хешируем пароль если есть
+        
         if (user.password) {
             user.password = await this.hashPassword(user.password);
         }
@@ -361,7 +361,7 @@ class UserModel {
         return { ...user, _id: result.insertedId };
     }
 
-    // Поиск пользователя по телефону
+    
     async findByPhone(phone) {
         return await this.collection.findOne({
             phone,
@@ -369,7 +369,7 @@ class UserModel {
         });
     }
 
-    // Поиск пользователя по ID
+    
     async findById(id) {
         return await this.collection.findOne({
             _id: new ObjectId(id),
@@ -377,7 +377,7 @@ class UserModel {
         });
     }
 
-    // Обновление пользователя
+    
     async update(id, updateData) {
         const { password, ...otherData } = updateData;
 
@@ -386,7 +386,7 @@ class UserModel {
             updatedAt: new Date()
         };
 
-        // Хешируем новый пароль если есть
+        
         if (password) {
             update.password = await this.hashPassword(password);
         }
@@ -400,20 +400,20 @@ class UserModel {
         return result;
     }
 
-    // Хеширование пароля
+    
     async hashPassword(password) {
         return await bcrypt.hash(password, 10);
     }
 
-    // Проверка пароля
+    
     async comparePassword(password, hashedPassword) {
         return await bcrypt.compare(password, hashedPassword);
     }
 
-    // Увеличение счетчика неудачных попыток входа
+    
     async incrementLoginAttempts(userId) {
         const maxAttempts = 5;
-        const lockTime = 15 * 60 * 1000; // 15 минут
+        const lockTime = 15 * 60 * 1000; 
 
         const user = await this.collection.findOne({ _id: new ObjectId(userId) });
 
@@ -423,7 +423,7 @@ class UserModel {
             updatedAt: new Date()
         };
 
-        // Блокируем после максимального количества попыток
+        
         if (attempts >= maxAttempts) {
             update.lockUntil = new Date(Date.now() + lockTime);
         }
@@ -436,7 +436,7 @@ class UserModel {
         return attempts;
     }
 
-    // Сброс счетчика попыток входа
+    
     async resetLoginAttempts(userId) {
         await this.collection.updateOne(
             { _id: new ObjectId(userId) },
@@ -451,7 +451,7 @@ class UserModel {
         );
     }
 
-    // Проверка блокировки
+    
     async isLocked(userId) {
         const user = await this.collection.findOne({ _id: new ObjectId(userId) });
 
@@ -459,7 +459,7 @@ class UserModel {
 
         const isLocked = user.lockUntil > new Date();
 
-        // Автоматически разблокируем если время истекло
+        
         if (!isLocked && user.lockUntil) {
             await this.collection.updateOne(
                 { _id: new ObjectId(userId) },
@@ -473,7 +473,7 @@ class UserModel {
         return isLocked;
     }
 
-    // Добавление устройства
+    
     async addDevice(userId, deviceData) {
         const device = {
             ...deviceData,
@@ -481,13 +481,13 @@ class UserModel {
             lastActiveAt: new Date()
         };
 
-        // Удаляем старое устройство если есть
+        
         await this.collection.updateOne(
             { _id: new ObjectId(userId) },
             { $pull: { devices: { deviceId: device.deviceId } } }
         );
 
-        // Добавляем новое
+        
         await this.collection.updateOne(
             { _id: new ObjectId(userId) },
             {
@@ -499,7 +499,7 @@ class UserModel {
         return device;
     }
 
-    // Обновление локации мастера
+    
     async updateMasterLocation(masterId, location) {
         const update = {
             'masterData.currentLocation': {
@@ -525,7 +525,7 @@ class UserModel {
         );
     }
 
-    // Поиск мастеров поблизости
+    
     async findNearbyMasters(location, radius, services = []) {
         const query = {
             role: USER_ROLES.MASTER,
@@ -550,7 +550,7 @@ class UserModel {
         return await this.collection.find(query).toArray();
     }
 
-    // Мягкое удаление
+    
     async softDelete(userId) {
         return await this.collection.updateOne(
             { _id: new ObjectId(userId) },
@@ -565,7 +565,7 @@ class UserModel {
     }
 }
 
-// Экспортируем
+
 module.exports = {
     UserModel,
     USER_ROLES,

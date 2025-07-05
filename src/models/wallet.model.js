@@ -1,4 +1,4 @@
-// src/models/wallet.model.js
+
 
 'use strict';
 
@@ -6,104 +6,104 @@ const { ObjectId } = require('mongodb');
 const { PAYMENT_TYPES, PAYMENT_STATUS } = require('../utils/constants/payment-status');
 const { USER_ROLES } = require('../utils/constants/user-roles');
 
-// Типы кошельков
+
 const WALLET_TYPES = {
-    USER: 'user',                          // Кошелек пользователя (клиент/мастер)
-    STO: 'sto',                           // Кошелек СТО
-    SYSTEM: 'system',                      // Системный кошелек (для комиссий)
-    ESCROW: 'escrow'                       // Эскроу счет (для холдирования средств)
+    USER: 'user',                          
+    STO: 'sto',                           
+    SYSTEM: 'system',                      
+    ESCROW: 'escrow'                       
 };
 
-// Статусы кошелька
+
 const WALLET_STATUS = {
-    ACTIVE: 'active',                      // Активен
-    SUSPENDED: 'suspended',                // Приостановлен
-    BLOCKED: 'blocked',                    // Заблокирован
-    CLOSED: 'closed'                       // Закрыт
+    ACTIVE: 'active',                      
+    SUSPENDED: 'suspended',                
+    BLOCKED: 'blocked',                    
+    CLOSED: 'closed'                       
 };
 
-// Типы балансов
+
 const BALANCE_TYPES = {
-    MAIN: 'main',                          // Основной баланс
-    BONUS: 'bonus',                        // Бонусный баланс
-    CASHBACK: 'cashback',                  // Кэшбэк баланс
-    PENDING: 'pending'                     // Ожидающие средства
+    MAIN: 'main',                          
+    BONUS: 'bonus',                        
+    CASHBACK: 'cashback',                  
+    PENDING: 'pending'                     
 };
 
-// Причины блокировки средств
+
 const HOLD_REASONS = {
-    ORDER_PAYMENT: 'order_payment',        // Оплата заказа
-    WITHDRAWAL_REQUEST: 'withdrawal_request', // Запрос на вывод
-    DISPUTE: 'dispute',                    // Спор по заказу
-    VERIFICATION: 'verification',          // Проверка платежа
-    PENALTY: 'penalty',                    // Штраф
-    OTHER: 'other'                         // Другое
+    ORDER_PAYMENT: 'order_payment',        
+    WITHDRAWAL_REQUEST: 'withdrawal_request', 
+    DISPUTE: 'dispute',                    
+    VERIFICATION: 'verification',          
+    PENALTY: 'penalty',                    
+    OTHER: 'other'                         
 };
 
-// Схема кошелька
+
 const walletSchema = {
     _id: ObjectId,
 
-    // Владелец кошелька
+    
     owner: {
-        type: String,                      // Из WALLET_TYPES
-        userId: ObjectId,                  // Для USER типа
-        stoId: ObjectId,                   // Для STO типа
-        systemId: String                   // Для SYSTEM типа (например, 'commission', 'bonus_pool')
+        type: String,                      
+        userId: ObjectId,                  
+        stoId: ObjectId,                   
+        systemId: String                   
     },
 
-    // Основная информация
-    currency: String,                      // Валюта (UZS)
-    status: String,                        // Из WALLET_STATUS
+    
+    currency: String,                      
+    status: String,                        
 
-    // Балансы (в минимальных единицах - тийин для UZS)
+    
     balance: {
-        // Доступные средства
+        
         available: {
-            main: Number,                  // Основной доступный баланс
-            bonus: Number,                 // Бонусный баланс
-            cashback: Number               // Кэшбэк баланс
+            main: Number,                  
+            bonus: Number,                 
+            cashback: Number               
         },
 
-        // Заблокированные средства
+        
         held: {
-            total: Number,                 // Всего заблокировано
+            total: Number,                 
 
-            // Детализация по причинам
+            
             details: [{
                 amount: Number,
-                reason: String,            // Из HOLD_REASONS
-                referenceId: ObjectId,     // Ссылка на заказ/транзакцию
-                referenceType: String,     // order, transaction, etc.
+                reason: String,            
+                referenceId: ObjectId,     
+                referenceType: String,     
                 description: String,
                 createdAt: Date,
-                expiresAt: Date           // Когда автоматически разблокировать
+                expiresAt: Date           
             }]
         },
 
-        // Ожидающие зачисления
+        
         pending: {
-            incoming: Number,              // Ожидаемые поступления
-            outgoing: Number               // Ожидаемые списания
+            incoming: Number,              
+            outgoing: Number               
         },
 
-        // Итоговые суммы
+        
         total: {
-            available: Number,             // Сумма всех доступных балансов
-            held: Number,                  // Сумма заблокированных
-            pending: Number,               // Сумма ожидающих
-            overall: Number                // Общий баланс (available + held + pending)
+            available: Number,             
+            held: Number,                  
+            pending: Number,               
+            overall: Number                
         }
     },
 
-    // Лимиты и ограничения
+    
     limits: {
-        // Лимиты на вывод
+        
         withdrawal: {
             daily: {
-                limit: Number,             // Дневной лимит
-                used: Number,              // Использовано сегодня
-                resetAt: Date              // Когда сбросится
+                limit: Number,             
+                used: Number,              
+                resetAt: Date              
             },
             monthly: {
                 limit: Number,
@@ -111,12 +111,12 @@ const walletSchema = {
                 resetAt: Date
             },
             perTransaction: {
-                min: Number,               // Минимальная сумма вывода
-                max: Number                // Максимальная сумма вывода
+                min: Number,               
+                max: Number                
             }
         },
 
-        // Лимиты на платежи
+        
         payment: {
             daily: {
                 limit: Number,
@@ -128,35 +128,35 @@ const walletSchema = {
             }
         },
 
-        // Минимальный баланс
-        minBalance: Number                 // Минимальный остаток на счете
+        
+        minBalance: Number                 
     },
 
-    // Настройки вывода средств
+    
     withdrawalSettings: {
-        // Автоматический вывод
+        
         autoWithdrawal: {
             enabled: Boolean,
-            threshold: Number,             // Порог для автовывода
-            schedule: String               // daily, weekly, monthly
+            threshold: Number,             
+            schedule: String               
         },
 
-        // Способы вывода
+        
         methods: [{
-            type: String,                  // card, bank_transfer
+            type: String,                  
             isDefault: Boolean,
             isVerified: Boolean,
 
-            // Данные карты
+            
             card: {
-                number: String,            // Маскированный номер
+                number: String,            
                 holder: String,
                 bank: String,
                 expiryMonth: Number,
                 expiryYear: Number
             },
 
-            // Банковский счет
+            
             bankAccount: {
                 accountNumber: String,
                 bankName: String,
@@ -168,34 +168,34 @@ const walletSchema = {
             addedAt: Date
         }],
 
-        // Комиссии за вывод
+        
         fees: {
-            percentage: Number,            // Процент комиссии
-            fixed: Number,                 // Фиксированная комиссия
-            min: Number,                   // Минимальная комиссия
-            max: Number                    // Максимальная комиссия
+            percentage: Number,            
+            fixed: Number,                 
+            min: Number,                   
+            max: Number                    
         }
     },
 
-    // Статистика
+    
     statistics: {
-        // Общая статистика
+        
         lifetime: {
-            totalReceived: Number,         // Всего получено
-            totalSpent: Number,            // Всего потрачено
-            totalWithdrawn: Number,        // Всего выведено
-            totalCommissionPaid: Number,   // Всего комиссий уплачено
-            totalBonusReceived: Number,    // Всего бонусов получено
-            totalCashbackReceived: Number  // Всего кэшбэка получено
+            totalReceived: Number,         
+            totalSpent: Number,            
+            totalWithdrawn: Number,        
+            totalCommissionPaid: Number,   
+            totalBonusReceived: Number,    
+            totalCashbackReceived: Number  
         },
 
-        // Месячная статистика
+        
         monthly: {
-            income: Number,                // Доход за месяц
-            expenses: Number,              // Расходы за месяц
-            withdrawals: Number,           // Выводы за месяц
+            income: Number,                
+            expenses: Number,              
+            withdrawals: Number,           
 
-            // По типам транзакций
+            
             byType: {
                 [PAYMENT_TYPES.ORDER_PAYMENT]: Number,
                 [PAYMENT_TYPES.WITHDRAWAL]: Number,
@@ -205,59 +205,59 @@ const walletSchema = {
             }
         },
 
-        // Счетчики
+        
         counters: {
-            totalTransactions: Number,     // Всего транзакций
-            successfulWithdrawals: Number, // Успешных выводов
-            failedWithdrawals: Number,     // Неудачных выводов
-            disputes: Number               // Споров
+            totalTransactions: Number,     
+            successfulWithdrawals: Number, 
+            failedWithdrawals: Number,     
+            disputes: Number               
         },
 
-        // Последнее обновление
+        
         lastCalculatedAt: Date
     },
 
-    // Настройки уведомлений
+    
     notifications: {
-        // Уведомления о балансе
+        
         balance: {
             lowBalanceAlert: {
                 enabled: Boolean,
-                threshold: Number          // Порог для уведомления
+                threshold: Number          
             },
             largeTransaction: {
                 enabled: Boolean,
-                threshold: Number          // Порог для уведомления о крупной транзакции
+                threshold: Number          
             }
         },
 
-        // Уведомления о транзакциях
+        
         transactions: {
-            incoming: Boolean,             // Уведомлять о поступлениях
-            outgoing: Boolean,             // Уведомлять о списаниях
-            withdrawals: Boolean           // Уведомлять о выводах
+            incoming: Boolean,             
+            outgoing: Boolean,             
+            withdrawals: Boolean           
         }
     },
 
-    // Безопасность
+    
     security: {
-        // PIN код для подтверждения операций
+        
         pin: {
-            hash: String,                  // Хэш PIN кода
-            attempts: Number,              // Попытки ввода
-            lockedUntil: Date,            // Заблокирован до
+            hash: String,                  
+            attempts: Number,              
+            lockedUntil: Date,            
             lastChangedAt: Date
         },
 
-        // Двухфакторная аутентификация для выводов
+        
         twoFactorEnabled: Boolean,
 
-        // Разрешенные IP для выводов (для бизнес-аккаунтов)
+        
         allowedIPs: [String],
 
-        // История подозрительных операций
+        
         suspiciousActivities: [{
-            type: String,                  // large_withdrawal, unusual_pattern
+            type: String,                  
             description: String,
             amount: Number,
             timestamp: Date,
@@ -265,75 +265,75 @@ const walletSchema = {
         }]
     },
 
-    // Комиссии платформы
+    
     platformFees: {
-        // Для мастеров и СТО
+        
         orderCommission: {
-            percentage: Number,            // Процент с заказа
-            min: Number,                   // Минимальная комиссия
-            max: Number                    // Максимальная комиссия
+            percentage: Number,            
+            min: Number,                   
+            max: Number                    
         },
 
-        // Специальные ставки
+        
         specialRates: [{
-            serviceType: String,           // Тип услуги
+            serviceType: String,           
             percentage: Number,
             validFrom: Date,
             validUntil: Date
         }],
 
-        // Льготный период
+        
         gracePeriod: {
             enabled: Boolean,
             endsAt: Date,
-            commission: Number             // Льготная комиссия
+            commission: Number             
         }
     },
 
-    // Бонусная программа
+    
     bonusProgram: {
-        // Правила начисления
+        
         rules: {
-            signupBonus: Number,           // Бонус за регистрацию
-            referralBonus: Number,         // Бонус за реферала
+            signupBonus: Number,           
+            referralBonus: Number,         
             orderBonus: {
-                percentage: Number,        // Процент от заказа
-                min: Number,               // Минимальный бонус
-                max: Number                // Максимальный бонус
+                percentage: Number,        
+                min: Number,               
+                max: Number                
             }
         },
 
-        // История начислений
+        
         history: [{
             amount: Number,
-            type: String,                  // signup, referral, order, promo
+            type: String,                  
             referenceId: ObjectId,
             description: String,
             earnedAt: Date,
-            expiresAt: Date               // Когда сгорят бонусы
+            expiresAt: Date               
         }],
 
-        // Использование бонусов
+        
         usage: {
-            maxPercentagePerOrder: Number, // Макс % от заказа бонусами
-            minOrderAmount: Number         // Мин. сумма заказа для использования
+            maxPercentagePerOrder: Number, 
+            minOrderAmount: Number         
         }
     },
 
-    // Кэшбэк программа
+    
     cashbackProgram: {
-        // Уровни кэшбэка
+        
         levels: [{
-            name: String,                  // bronze, silver, gold
-            percentage: Number,            // Процент кэшбэка
-            minMonthlySpend: Number,       // Минимальная трата в месяц
-            benefits: [String]             // Дополнительные преимущества
+            name: String,                  
+            percentage: Number,            
+            minMonthlySpend: Number,       
+            benefits: [String]             
         }],
 
         currentLevel: String,
-        nextLevelProgress: Number,         // Прогресс до следующего уровня (0-100)
+        nextLevelProgress: Number,         
 
-        // История кэшбэка
+        
         history: [{
             amount: Number,
             orderId: ObjectId,
@@ -342,9 +342,9 @@ const walletSchema = {
         }]
     },
 
-    // Связанные сущности
+    
     related: {
-        // Для эскроу счетов
+        
         escrow: {
             orderId: ObjectId,
             buyerWalletId: ObjectId,
@@ -354,26 +354,26 @@ const walletSchema = {
         }
     },
 
-    // Метаданные
+    
     metadata: {
-        // Для интеграций
-        externalId: String,                // ID во внешней системе
-        externalSystem: String,            // Название системы
+        
+        externalId: String,                
+        externalSystem: String,            
 
-        // Дополнительные данные
+        
         tags: [String],
         notes: String,
         customFields: Object
     },
 
-    // Аудит
+    
     audit: {
-        createdBy: ObjectId,               // Кто создал
-        lastModifiedBy: ObjectId,          // Кто последний изменял
+        createdBy: ObjectId,               
+        lastModifiedBy: ObjectId,          
 
-        // Важные события
+        
         events: [{
-            type: String,                  // status_change, limit_change, security_change
+            type: String,                  
             description: String,
             performedBy: ObjectId,
             timestamp: Date,
@@ -381,24 +381,24 @@ const walletSchema = {
         }]
     },
 
-    // Временные метки
+    
     createdAt: Date,
     updatedAt: Date,
-    lastActivityAt: Date,                  // Последняя транзакция
-    closedAt: Date                         // Когда закрыт (если закрыт)
+    lastActivityAt: Date,                  
+    closedAt: Date                         
 };
 
-// Класс для работы с кошельками
+
 class WalletModel {
     constructor(db) {
         this.collection = db.collection('wallets');
         this.setupIndexes();
     }
 
-    // Создание индексов
+    
     async setupIndexes() {
         try {
-            // Уникальные индексы
+            
             await this.collection.createIndex(
                 { 'owner.userId': 1 },
                 {
@@ -423,20 +423,20 @@ class WalletModel {
                 }
             );
 
-            // Составные индексы
+            
             await this.collection.createIndex({ 'owner.type': 1, status: 1 });
             await this.collection.createIndex({ 'balance.total.available': -1 });
             await this.collection.createIndex({ lastActivityAt: -1 });
 
-            // Индексы для поиска holds
+            
             await this.collection.createIndex({ 'balance.held.details.referenceId': 1 });
             await this.collection.createIndex({ 'balance.held.details.expiresAt': 1 });
 
-            // Индексы для статистики
+            
             await this.collection.createIndex({ 'statistics.monthly.income': -1 });
             await this.collection.createIndex({ createdAt: -1 });
 
-            // TTL индекс для автоматического разблокирования holds
+            
             await this.collection.createIndex(
                 { 'balance.held.details.expiresAt': 1 },
                 { expireAfterSeconds: 0 }
@@ -447,7 +447,7 @@ class WalletModel {
         }
     }
 
-    // Создание нового кошелька
+    
     async create(walletData) {
         const now = new Date();
 
@@ -455,7 +455,7 @@ class WalletModel {
             _id: new ObjectId(),
             ...walletData,
 
-            // Defaults
+            
             currency: walletData.currency || 'UZS',
             status: walletData.status || WALLET_STATUS.ACTIVE,
 
@@ -495,8 +495,8 @@ class WalletModel {
                         resetAt: this.getNextResetDate('monthly')
                     },
                     perTransaction: {
-                        min: 10000,    // 10,000 UZS
-                        max: 5000000   // 5,000,000 UZS
+                        min: 10000,    
+                        max: 5000000   
                     }
                 },
                 payment: {
@@ -506,7 +506,7 @@ class WalletModel {
                         resetAt: this.getNextResetDate('daily')
                     },
                     perTransaction: {
-                        max: 10000000  // 10,000,000 UZS
+                        max: 10000000  
                     }
                 },
                 minBalance: 0,
@@ -541,11 +541,11 @@ class WalletModel {
                 balance: {
                     lowBalanceAlert: {
                         enabled: true,
-                        threshold: 50000  // 50,000 UZS
+                        threshold: 50000  
                     },
                     largeTransaction: {
                         enabled: true,
-                        threshold: 1000000  // 1,000,000 UZS
+                        threshold: 1000000  
                     }
                 },
                 transactions: {
@@ -571,14 +571,14 @@ class WalletModel {
             lastActivityAt: now
         };
 
-        // Пересчет общих балансов
+        
         wallet.balance.total = this.calculateTotalBalances(wallet.balance);
 
         const result = await this.collection.insertOne(wallet);
         return { ...wallet, _id: result.insertedId };
     }
 
-    // Поиск кошелька по ID
+    
     async findById(id) {
         return await this.collection.findOne({
             _id: new ObjectId(id),
@@ -586,7 +586,7 @@ class WalletModel {
         });
     }
 
-    // Поиск кошелька пользователя
+    
     async findByUserId(userId) {
         return await this.collection.findOne({
             'owner.type': WALLET_TYPES.USER,
@@ -595,7 +595,7 @@ class WalletModel {
         });
     }
 
-    // Поиск кошелька СТО
+    
     async findByStoId(stoId) {
         return await this.collection.findOne({
             'owner.type': WALLET_TYPES.STO,
@@ -604,7 +604,7 @@ class WalletModel {
         });
     }
 
-    // Обновление баланса (атомарная операция)
+    
     async updateBalance(walletId, updates) {
         const updateQuery = {
             $set: {
@@ -613,7 +613,7 @@ class WalletModel {
             }
         };
 
-        // Обновление доступных балансов
+        
         if (updates.available) {
             Object.entries(updates.available).forEach(([type, delta]) => {
                 if (delta !== 0) {
@@ -625,7 +625,7 @@ class WalletModel {
             });
         }
 
-        // Обновление ожидающих
+        
         if (updates.pending) {
             Object.entries(updates.pending).forEach(([direction, delta]) => {
                 if (delta !== 0) {
@@ -639,7 +639,7 @@ class WalletModel {
             });
         }
 
-        // Добавление hold
+        
         if (updates.addHold) {
             updateQuery.$push = {
                 'balance.held.details': {
@@ -652,7 +652,7 @@ class WalletModel {
             updateQuery.$inc['balance.total.held'] = updates.addHold.amount;
         }
 
-        // Удаление hold
+        
         if (updates.removeHold) {
             updateQuery.$pull = {
                 'balance.held.details': {
@@ -671,7 +671,7 @@ class WalletModel {
         );
     }
 
-    // Блокировка средств
+    
     async holdFunds(walletId, holdData) {
         const hold = {
             _id: new ObjectId(),
@@ -681,10 +681,10 @@ class WalletModel {
             referenceType: holdData.referenceType,
             description: holdData.description,
             createdAt: new Date(),
-            expiresAt: holdData.expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 часа по умолчанию
+            expiresAt: holdData.expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000) 
         };
 
-        // Проверяем достаточность средств
+        
         const wallet = await this.findById(walletId);
         if (!wallet) {
             throw new Error('Wallet not found');
@@ -694,14 +694,14 @@ class WalletModel {
             throw new Error('Insufficient funds');
         }
 
-        // Блокируем средства
+        
         return await this.updateBalance(walletId, {
             available: { main: -holdData.amount },
             addHold: hold
         });
     }
 
-    // Разблокировка средств
+    
     async releaseFunds(walletId, holdId, releaseToAvailable = true) {
         const wallet = await this.findById(walletId);
         if (!wallet) {
@@ -723,7 +723,7 @@ class WalletModel {
             }
         };
 
-        // Возвращаем в доступный баланс если указано
+        
         if (releaseToAvailable) {
             updates.available = { main: hold.amount };
         }
@@ -731,7 +731,7 @@ class WalletModel {
         return await this.updateBalance(walletId, updates);
     }
 
-    // Обновление статистики
+    
     async updateStatistics(walletId, transaction) {
         const { type, amount } = transaction;
         const isIncoming = [
@@ -759,7 +759,7 @@ class WalletModel {
             updateQuery.$inc['statistics.monthly.expenses'] = amount;
         }
 
-        // Специфичные обновления по типам
+        
         if (type === PAYMENT_TYPES.WITHDRAWAL) {
             updateQuery.$inc['statistics.lifetime.totalWithdrawn'] = amount;
             updateQuery.$inc['statistics.monthly.withdrawals'] = amount;
@@ -778,7 +778,7 @@ class WalletModel {
             updateQuery.$inc['statistics.lifetime.totalCashbackReceived'] = amount;
         }
 
-        // Обновление статистики по типам
+        
         updateQuery.$inc[`statistics.monthly.byType.${type}`] = amount;
 
         return await this.collection.updateOne(
@@ -787,7 +787,7 @@ class WalletModel {
         );
     }
 
-    // Проверка лимитов
+    
     async checkLimit(walletId, amount, limitType = 'withdrawal') {
         const wallet = await this.findById(walletId);
         if (!wallet) {
@@ -797,7 +797,7 @@ class WalletModel {
         const limits = wallet.limits[limitType];
         const errors = [];
 
-        // Проверка дневного лимита
+        
         if (limits.daily && limits.daily.used + amount > limits.daily.limit) {
             errors.push({
                 type: 'daily_limit',
@@ -805,7 +805,7 @@ class WalletModel {
             });
         }
 
-        // Проверка месячного лимита
+        
         if (limits.monthly && limits.monthly.used + amount > limits.monthly.limit) {
             errors.push({
                 type: 'monthly_limit',
@@ -813,7 +813,7 @@ class WalletModel {
             });
         }
 
-        // Проверка лимитов транзакции
+        
         if (limits.perTransaction) {
             if (limits.perTransaction.min && amount < limits.perTransaction.min) {
                 errors.push({
@@ -838,7 +838,7 @@ class WalletModel {
         };
     }
 
-    // Обновление использованных лимитов
+    
     async updateLimitUsage(walletId, amount, limitType = 'withdrawal') {
         const now = new Date();
 
@@ -850,7 +850,7 @@ class WalletModel {
             $set: { updatedAt: now }
         };
 
-        // Проверяем и сбрасываем дневной лимит если нужно
+        
         if (wallet.limits[limitType].daily.resetAt < now) {
             updateQuery.$set[`limits.${limitType}.daily.used`] = amount;
             updateQuery.$set[`limits.${limitType}.daily.resetAt`] = this.getNextResetDate('daily');
@@ -858,7 +858,7 @@ class WalletModel {
             updateQuery.$inc[`limits.${limitType}.daily.used`] = amount;
         }
 
-        // Проверяем и сбрасываем месячный лимит если нужно
+        
         if (wallet.limits[limitType].monthly.resetAt < now) {
             updateQuery.$set[`limits.${limitType}.monthly.used`] = amount;
             updateQuery.$set[`limits.${limitType}.monthly.resetAt`] = this.getNextResetDate('monthly');
@@ -872,9 +872,9 @@ class WalletModel {
         );
     }
 
-    // Вспомогательные методы
+    
 
-    // Расчет общих балансов
+    
     calculateTotalBalances(balance) {
         const available = Object.values(balance.available).reduce((sum, val) => sum + val, 0);
         const held = balance.held.total || 0;
@@ -888,23 +888,23 @@ class WalletModel {
         };
     }
 
-    // Получение дефолтных лимитов
+    
     getDefaultLimit(limitType, period, ownerType) {
         const limits = {
             withdrawal: {
                 daily: {
-                    [WALLET_TYPES.USER]: 10000000,    // 10M UZS
-                    [WALLET_TYPES.STO]: 50000000      // 50M UZS
+                    [WALLET_TYPES.USER]: 10000000,    
+                    [WALLET_TYPES.STO]: 50000000      
                 },
                 monthly: {
-                    [WALLET_TYPES.USER]: 100000000,   // 100M UZS
-                    [WALLET_TYPES.STO]: 1000000000    // 1B UZS
+                    [WALLET_TYPES.USER]: 100000000,   
+                    [WALLET_TYPES.STO]: 1000000000    
                 }
             },
             payment: {
                 daily: {
-                    [WALLET_TYPES.USER]: 50000000,    // 50M UZS
-                    [WALLET_TYPES.STO]: 100000000     // 100M UZS
+                    [WALLET_TYPES.USER]: 50000000,    
+                    [WALLET_TYPES.STO]: 100000000     
                 }
             }
         };
@@ -912,7 +912,7 @@ class WalletModel {
         return limits[limitType]?.[period]?.[ownerType] || 0;
     }
 
-    // Получение следующей даты сброса
+    
     getNextResetDate(period) {
         const now = new Date();
 
@@ -934,7 +934,7 @@ class WalletModel {
         return now;
     }
 
-    // Автоматическое освобождение истекших holds
+    
     async releaseExpiredHolds() {
         const now = new Date();
 
@@ -958,7 +958,7 @@ class WalletModel {
     }
 }
 
-// Экспортируем
+
 module.exports = {
     WalletModel,
     WALLET_TYPES,

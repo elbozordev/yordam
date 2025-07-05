@@ -1,4 +1,4 @@
-// src/services/notification/notification.service.js
+
 
 'use strict';
 
@@ -21,10 +21,7 @@ const {
 const { USER_ROLES } = require('../../utils/constants/user-roles');
 const { AppError } = require('../../utils/errors/app-error');
 
-/**
- * Основной сервис уведомлений
- * Координирует работу всех каналов и управляет жизненным циклом уведомлений
- */
+
 class NotificationService {
     constructor(fastify) {
         this.fastify = fastify;
@@ -34,14 +31,14 @@ class NotificationService {
         this.rabbitmq = fastify.rabbitmq;
         this.logger = fastify.log.child({ service: 'notification' });
 
-        // Инициализация моделей
+        
         this.notificationModel = new NotificationModel(this.mongo);
 
-        // Инициализация сервисов каналов
+        
         this.channels = {};
         this.initializeChannels();
 
-        // Статистика
+        
         this.stats = {
             sent: 0,
             delivered: 0,
@@ -49,21 +46,19 @@ class NotificationService {
             processing: 0
         };
 
-        // Запуск обработчиков очередей
+        
         this.startQueueProcessors();
     }
 
-    /**
-     * Инициализация каналов доставки
-     */
+    
     initializeChannels() {
-        // Push
+        
         if (this.config.channels.push.enabled) {
             const PushService = require('./push.service');
             this.channels.push = new PushService(this.fastify);
         }
 
-        // SMS
+        
         if (this.config.channels.sms.enabled) {
             const SMSService = require('./sms.service');
             this.channels.sms = new SMSService(
@@ -73,26 +68,24 @@ class NotificationService {
             );
         }
 
-        // Email
+        
         if (this.config.channels.email.enabled) {
             const EmailService = require('./email.service');
             this.channels.email = new EmailService(this.fastify);
         }
 
-        // Template service
+        
         const TemplateService = require('./template.service');
         this.templateService = new TemplateService(this.redis, this.logger);
         this.templateService.setCacheService(this.fastify.cache);
     }
 
-    /**
-     * Отправка уведомления о статусе верификации
-     */
+    
     async sendVerificationStatus(userId, verificationData) {
         const { status, documentType, reason, nextSteps } = verificationData;
 
         try {
-            // Определяем тип уведомления
+            
             let notificationType;
             switch (status) {
                 case 'pending':
@@ -108,13 +101,13 @@ class NotificationService {
                     throw new AppError('Invalid verification status', 'INVALID_STATUS', 400);
             }
 
-            // Получаем данные пользователя
+            
             const user = await this.getUserData(userId);
             if (!user) {
                 throw new AppError('User not found', 'USER_NOT_FOUND', 404);
             }
 
-            // Подготавливаем данные для шаблона
+            
             const templateData = {
                 userName: user.name.first,
                 documentType: this.getDocumentTypeName(documentType, user.language),
@@ -123,7 +116,7 @@ class NotificationService {
                 supportPhone: this.config.templates.defaultVars.supportPhone
             };
 
-            // Создаем уведомление
+            
             const notification = await this.create({
                 type: notificationType,
                 recipientId: userId,
@@ -153,12 +146,10 @@ class NotificationService {
         }
     }
 
-    /**
-     * Создание и отправка уведомления
-     */
+    
     async create(notificationData) {
         try {
-            // Валидация
+            
             const validation = NotificationValidator.validate(notificationData);
             if (!validation.isValid) {
                 throw new AppError(
@@ -171,13 +162,13 @@ class NotificationService {
 
             const normalizedData = validation.normalized || notificationData;
 
-            // Получаем данные пользователя если не переданы
+            
             if (!normalizedData.preferences) {
                 const user = await this.getUserData(normalizedData.recipientId);
                 normalizedData.preferences = user?.notifications;
             }
 
-            // Проверяем дедупликацию
+            
             if (normalizedData.deduplicationKey) {
                 const isDuplicate = await this.checkDuplication(normalizedData.deduplicationKey);
                 if (isDuplicate) {
@@ -185,18 +176,18 @@ class NotificationService {
                 }
             }
 
-            // Создаем запись в БД
+            
             const notification = await this.notificationModel.create(normalizedData);
 
-            // Определяем приоритет обработки
+            
             const priority = this.calculatePriority(notification);
 
-            // Отправляем в очередь или обрабатываем сразу
+            
             if (priority === 'critical' && !notification.scheduling.scheduledFor) {
-                // Критичные уведомления обрабатываем сразу
+                
                 await this.processNotification(notification);
             } else {
-                // Остальные через очередь
+                
                 await this.queueNotification(notification, priority);
             }
 
@@ -211,46 +202,44 @@ class NotificationService {
         }
     }
 
-    /**
-     * Обработка уведомления
-     */
+    
     async processNotification(notification) {
         const startTime = Date.now();
         this.stats.processing++;
 
         try {
-            // Обновляем статус
+            
             await this.notificationModel.updateStatus(
                 notification._id,
                 'processing'
             );
 
-            // Проверяем тихие часы
+            
             if (await this.shouldRespectQuietHours(notification)) {
                 await this.scheduleAfterQuietHours(notification);
                 return;
             }
 
-            // Определяем каналы для отправки
+            
             const channels = await this.selectChannels(notification);
             if (channels.length === 0) {
                 throw new AppError('No available channels', 'NO_CHANNELS', 400);
             }
 
-            // Рендерим контент для каждого канала
+            
             const renderedContent = await this.renderContent(notification, channels);
 
-            // Отправляем через каналы
+            
             const results = await this.sendThroughChannels(
                 notification,
                 channels,
                 renderedContent
             );
 
-            // Обрабатываем результаты
+            
             await this.processDeliveryResults(notification, results);
 
-            // Обновляем статистику
+            
             const processingTime = Date.now() - startTime;
             await this.updateStats(notification._id, { processingTime });
 
@@ -261,30 +250,28 @@ class NotificationService {
         } catch (error) {
             this.stats.processing--;
 
-            // Обработка ошибок
+            
             await this.handleProcessingError(notification, error);
             throw error;
         }
     }
 
-    /**
-     * Выбор каналов для отправки
-     */
+    
     async selectChannels(notification) {
-        // Получаем доступные каналы пользователя
+        
         const user = await this.getUserData(notification.recipient.userId);
         const activeChannels = getUserActiveChannels(user);
 
-        // Фильтруем по настройкам уведомления
+        
         const metadata = getNotificationMetadata(notification.type);
         const allowedChannels = notification.channels || metadata?.channels || [];
 
         const availableChannels = activeChannels.filter(channel =>
             allowedChannels.includes(channel) &&
-            this.channels[channel] // Проверяем что канал инициализирован
+            this.channels[channel] 
         );
 
-        // Выбираем оптимальный канал или все если указано
+        
         if (notification.sendToAllChannels) {
             return availableChannels;
         }
@@ -298,15 +285,13 @@ class NotificationService {
         return bestChannel ? [bestChannel] : [];
     }
 
-    /**
-     * Рендеринг контента для каналов
-     */
+    
     async renderContent(notification, channels) {
         const rendered = {};
 
         for (const channel of channels) {
             try {
-                // Если есть кастомный контент
+                
                 if (notification.content) {
                     rendered[channel] = this.prepareCustomContent(
                         notification.content,
@@ -314,7 +299,7 @@ class NotificationService {
                         notification.recipient.language
                     );
                 } else {
-                    // Используем шаблон
+                    
                     rendered[channel] = await this.templateService.renderTemplate(
                         notification.type,
                         channel,
@@ -337,13 +322,11 @@ class NotificationService {
         return rendered;
     }
 
-    /**
-     * Отправка через каналы
-     */
+    
     async sendThroughChannels(notification, channels, renderedContent) {
         const results = {};
 
-        // Параллельная отправка через все каналы
+        
         const promises = channels.map(async (channel) => {
             try {
                 const content = renderedContent[channel];
@@ -356,17 +339,17 @@ class NotificationService {
                     throw new Error('Channel service not available');
                 }
 
-                // Подготавливаем данные для канала
+                
                 const channelData = this.prepareChannelData(
                     notification,
                     channel,
                     content
                 );
 
-                // Отправляем
+                
                 const result = await channelService.send(channelData);
 
-                // Обновляем статус канала
+                
                 await this.notificationModel.updateChannelStatus(
                     notification._id,
                     channel,
@@ -408,9 +391,7 @@ class NotificationService {
         return results;
     }
 
-    /**
-     * Подготовка данных для канала
-     */
+    
     prepareChannelData(notification, channel, content) {
         const baseData = {
             userId: notification.recipient.userId,
@@ -456,7 +437,7 @@ class NotificationService {
                 };
 
             case 'in_app':
-                // In-app сохраняется в БД, отправка через WebSocket
+                
                 return {
                     ...baseData,
                     content
@@ -467,9 +448,7 @@ class NotificationService {
         }
     }
 
-    /**
-     * Обработка результатов доставки
-     */
+    
     async processDeliveryResults(notification, results) {
         const successChannels = Object.entries(results)
             .filter(([_, result]) => result.success)
@@ -479,7 +458,7 @@ class NotificationService {
             .filter(([_, result]) => !result.success)
             .map(([channel]) => channel);
 
-        // Определяем общий статус
+        
         let status;
         if (successChannels.length === 0) {
             status = 'failed';
@@ -492,26 +471,24 @@ class NotificationService {
             this.stats.sent++;
         }
 
-        // Обновляем статус уведомления
+        
         await this.notificationModel.updateStatus(notification._id, status, {
             successChannels,
             failedChannels
         });
 
-        // Если все каналы не сработали, пробуем fallback
+        
         if (status === 'failed' && notification.priority !== 'low') {
             await this.tryFallbackChannels(notification, failedChannels);
         }
 
-        // Отправляем вебхук если настроен
+        
         if (notification.metadata.webhookUrl) {
             await this.sendDeliveryWebhook(notification, results);
         }
     }
 
-    /**
-     * Попытка отправки через резервные каналы
-     */
+    
     async tryFallbackChannels(notification, failedChannels) {
         const metadata = getNotificationMetadata(notification.type);
         const fallbackChannels = metadata?.fallbackChannels || [];
@@ -527,7 +504,7 @@ class NotificationService {
                 fallbackChannels: availableFallbacks
             }, 'Trying fallback channels');
 
-            // Пробуем первый доступный fallback
+            
             const fallbackNotification = {
                 ...notification,
                 channels: [availableFallbacks[0]],
@@ -542,9 +519,7 @@ class NotificationService {
         }
     }
 
-    /**
-     * Проверка дедупликации
-     */
+    
     async checkDuplication(key) {
         const lockKey = this.redis.keys.notificationDedup(key);
         const exists = await this.redis.get(lockKey);
@@ -553,16 +528,14 @@ class NotificationService {
             return true;
         }
 
-        // Устанавливаем ключ на 24 часа
+        
         await this.redis.setex(lockKey, 86400, '1');
         return false;
     }
 
-    /**
-     * Проверка тихих часов
-     */
+    
     async shouldRespectQuietHours(notification) {
-        // Критичные уведомления игнорируют тихие часы
+        
         if (notification.priority === 'critical') {
             return false;
         }
@@ -578,24 +551,22 @@ class NotificationService {
         );
     }
 
-    /**
-     * Планирование после тихих часов
-     */
+    
     async scheduleAfterQuietHours(notification) {
         const quietHours = notification.recipient.preferences.quietHours;
         const now = new Date();
 
-        // Вычисляем время окончания тихих часов
+        
         const [endHour, endMinute] = quietHours.end.split(':').map(Number);
         const endTime = new Date(now);
         endTime.setHours(endHour, endMinute, 0, 0);
 
-        // Если уже прошло время окончания, переносим на завтра
+        
         if (endTime <= now) {
             endTime.setDate(endTime.getDate() + 1);
         }
 
-        // Обновляем расписание
+        
         await this.notificationModel.collection.updateOne(
             { _id: notification._id },
             {
@@ -606,16 +577,14 @@ class NotificationService {
             }
         );
 
-        // Добавляем обратно в очередь
+        
         await this.queueNotification(
             { ...notification, scheduling: { scheduledFor: endTime } },
             notification.priority
         );
     }
 
-    /**
-     * Добавление в очередь
-     */
+    
     async queueNotification(notification, priority = 'normal') {
         const queueName = `notification_${priority}`;
 
@@ -628,13 +597,11 @@ class NotificationService {
             persistent: true
         });
 
-        // Обновляем статус
+        
         await this.notificationModel.updateStatus(notification._id, 'queued');
     }
 
-    /**
-     * Массовая отправка уведомлений
-     */
+    
     async sendBatch(batchData) {
         const validation = NotificationValidator.validateBatch(batchData);
         if (!validation.isValid) {
@@ -646,7 +613,7 @@ class NotificationService {
             );
         }
 
-        // Создаем батч уведомлений
+        
         const notifications = batchData.recipients.map(recipient => ({
             ...batchData,
             recipientId: recipient.userId,
@@ -665,10 +632,10 @@ class NotificationService {
             }
         }));
 
-        // Создаем уведомления в БД
+        
         const result = await this.notificationModel.createBatch(notifications);
 
-        // Отправляем в очередь для обработки
+        
         for (const notificationId of Object.values(result.insertedIds)) {
             await this.queueNotification(
                 { _id: notificationId, ...batchData },
@@ -679,19 +646,17 @@ class NotificationService {
         return result;
     }
 
-    /**
-     * Получение данных пользователя
-     */
+    
     async getUserData(userId) {
         const cacheKey = this.redis.keys.userNotificationData(userId);
 
-        // Проверяем кэш
+        
         const cached = await this.redis.get(cacheKey);
         if (cached) {
             return JSON.parse(cached);
         }
 
-        // Получаем из БД
+        
         const user = await this.mongo.collection('users').findOne(
             { _id: new ObjectId(userId) },
             {
@@ -710,16 +675,14 @@ class NotificationService {
         );
 
         if (user) {
-            // Кэшируем на 5 минут
+            
             await this.redis.setex(cacheKey, 300, JSON.stringify(user));
         }
 
         return user;
     }
 
-    /**
-     * Обработчики очередей
-     */
+    
     async startQueueProcessors() {
         const priorities = ['critical', 'high', 'normal', 'low'];
 
@@ -731,7 +694,7 @@ class NotificationService {
                 try {
                     const { notificationId } = message.content;
 
-                    // Получаем уведомление из БД
+                    
                     const notification = await this.notificationModel.collection.findOne({
                         _id: new ObjectId(notificationId)
                     });
@@ -740,7 +703,7 @@ class NotificationService {
                         throw new Error('Notification not found');
                     }
 
-                    // Проверяем не истекло ли
+                    
                     if (new Date() > notification.lifecycle.expiresAt) {
                         await this.notificationModel.updateStatus(
                             notification._id,
@@ -750,7 +713,7 @@ class NotificationService {
                         return;
                     }
 
-                    // Обрабатываем
+                    
                     await this.processNotification(notification);
 
                     message.ack();
@@ -761,12 +724,12 @@ class NotificationService {
                         error: error.message
                     }, 'Failed to process queued notification');
 
-                    // Retry или DLQ
+                    
                     const retryCount = message.properties.headers?.['x-retry-count'] || 0;
                     if (retryCount < 3) {
-                        message.nack(true); // requeue
+                        message.nack(true); 
                     } else {
-                        message.nack(false); // to DLQ
+                        message.nack(false); 
                     }
                 }
             }, {
@@ -775,9 +738,7 @@ class NotificationService {
         }
     }
 
-    /**
-     * Обработка ошибок
-     */
+    
     async handleProcessingError(notification, error) {
         this.logger.error({
             notificationId: notification._id,
@@ -797,15 +758,13 @@ class NotificationService {
             }
         );
 
-        // Алерт для критичных уведомлений
+        
         if (notification.priority === 'critical') {
             await this.sendCriticalFailureAlert(notification, error);
         }
     }
 
-    /**
-     * Вспомогательные методы
-     */
+    
 
     getDocumentTypeName(type, language = 'ru') {
         const types = {
@@ -840,12 +799,12 @@ class NotificationService {
     }
 
     calculatePriority(notification) {
-        // Если явно указан приоритет
+        
         if (notification.priority) {
             return notification.priority;
         }
 
-        // Определяем по типу
+        
         const metadata = getNotificationMetadata(notification.type);
         return metadata?.priority || 'normal';
     }
@@ -853,14 +812,14 @@ class NotificationService {
     prepareCustomContent(content, channel, language) {
         const result = {};
 
-        // Копируем локализованные поля
+        
         ['title', 'body', 'subtitle'].forEach(field => {
             if (content[field]?.[language]) {
                 result[field] = content[field][language];
             }
         });
 
-        // Копируем остальные поля
+        
         ['media', 'actions', 'data'].forEach(field => {
             if (content[field]) {
                 result[field] = content[field];
@@ -883,12 +842,12 @@ class NotificationService {
     }
 
     async sendDeliveryWebhook(notification, results) {
-        // Реализация webhook вызовов
-        // TODO: Implement webhook delivery
+        
+        
     }
 
     async sendCriticalFailureAlert(notification, error) {
-        // Отправка алертов админам о критичных ошибках
+        
         this.logger.fatal({
             notificationId: notification._id,
             type: notification.type,
@@ -896,12 +855,10 @@ class NotificationService {
             error: error.message
         }, 'Critical notification failed');
 
-        // TODO: Implement admin alerts
+        
     }
 
-    /**
-     * API методы
-     */
+    
 
     async getNotification(notificationId) {
         return await this.notificationModel.collection.findOne({
@@ -935,14 +892,14 @@ class NotificationService {
             channels: {}
         };
 
-        // Проверяем каналы
+        
         for (const [name, service] of Object.entries(this.channels)) {
             if (service.healthCheck) {
                 checks.channels[name] = await service.healthCheck();
             }
         }
 
-        // Проверяем очереди
+        
         checks.queues = await this.rabbitmq.healthCheck();
 
         return checks;

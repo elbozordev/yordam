@@ -1,15 +1,12 @@
-// src/utils/constants/rejection-reasons.js
+
 
 'use strict';
 
-/**
- * Причины отклонения документов для верификации
- * Структурировано по категориям и типам документов
- */
 
-// Основные причины отклонения (общие для всех документов)
+
+
 const REJECTION_REASONS = {
-    // Качество изображения
+    
     POOR_QUALITY: 'poor_quality',
     BLURRY_IMAGE: 'blurry_image',
     LOW_RESOLUTION: 'low_resolution',
@@ -18,7 +15,7 @@ const REJECTION_REASONS = {
     PARTIAL_DOCUMENT: 'partial_document',
     GLARE_REFLECTION: 'glare_reflection',
 
-    // Валидность документа
+    
     INVALID_DOCUMENT: 'invalid_document',
     EXPIRED: 'expired',
     NOT_YET_VALID: 'not_yet_valid',
@@ -26,36 +23,36 @@ const REJECTION_REASONS = {
     FAKE_DOCUMENT: 'fake_document',
     DOCUMENT_TAMPERED: 'document_tampered',
 
-    // Полнота информации
+    
     INCOMPLETE: 'incomplete',
     MISSING_PAGES: 'missing_pages',
     MISSING_STAMPS: 'missing_stamps',
     MISSING_SIGNATURE: 'missing_signature',
     MISSING_PHOTO: 'missing_photo',
 
-    // Соответствие данных
+    
     MISMATCH: 'mismatch',
     NAME_MISMATCH: 'name_mismatch',
     PHOTO_MISMATCH: 'photo_mismatch',
     DATE_MISMATCH: 'date_mismatch',
     NUMBER_MISMATCH: 'number_mismatch',
 
-    // Тип документа
+    
     WRONG_DOCUMENT_TYPE: 'wrong_document_type',
     UNSUPPORTED_FORMAT: 'unsupported_format',
 
-    // Специфичные для типов
-    WRONG_CATEGORY: 'wrong_category',          // Для водительских прав
+    
+    WRONG_CATEGORY: 'wrong_category',          
     NO_REQUIRED_CATEGORY: 'no_required_category',
     INVALID_LICENSE_TYPE: 'invalid_license_type',
-    BUSINESS_INACTIVE: 'business_inactive',     // Для бизнес документов
+    BUSINESS_INACTIVE: 'business_inactive',     
     TAX_DEBT: 'tax_debt',
 
-    // Прочее
+    
     OTHER: 'other'
 };
 
-// Группировка причин по категориям
+
 const REJECTION_CATEGORIES = {
     QUALITY: [
         REJECTION_REASONS.POOR_QUALITY,
@@ -93,9 +90,9 @@ const REJECTION_CATEGORIES = {
     ]
 };
 
-// Описания причин отклонения
+
 const REJECTION_DESCRIPTIONS = {
-    // Качество изображения
+    
     poor_quality: {
         ru: 'Низкое качество изображения',
         uz: 'Rasm sifati past',
@@ -132,7 +129,7 @@ const REJECTION_DESCRIPTIONS = {
         en: 'Glare or reflections on document'
     },
 
-    // Валидность документа
+    
     invalid_document: {
         ru: 'Недействительный документ',
         uz: 'Hujjat haqiqiy emas',
@@ -164,7 +161,7 @@ const REJECTION_DESCRIPTIONS = {
         en: 'Document has been tampered'
     },
 
-    // Полнота информации
+    
     incomplete: {
         ru: 'Неполная информация',
         uz: 'To\'liqsiz ma\'lumot',
@@ -191,7 +188,7 @@ const REJECTION_DESCRIPTIONS = {
         en: 'Missing photo'
     },
 
-    // Соответствие данных
+    
     mismatch: {
         ru: 'Данные не совпадают',
         uz: 'Ma\'lumotlar mos kelmayapti',
@@ -218,7 +215,7 @@ const REJECTION_DESCRIPTIONS = {
         en: 'Document number doesn\'t match'
     },
 
-    // Тип документа
+    
     wrong_document_type: {
         ru: 'Неверный тип документа',
         uz: 'Noto\'g\'ri hujjat turi',
@@ -230,7 +227,7 @@ const REJECTION_DESCRIPTIONS = {
         en: 'Unsupported document format'
     },
 
-    // Специфичные
+    
     wrong_category: {
         ru: 'Неверная категория прав',
         uz: 'Noto\'g\'ri huquq toifasi',
@@ -264,9 +261,9 @@ const REJECTION_DESCRIPTIONS = {
     }
 };
 
-// Рекомендации по исправлению
+
 const REJECTION_RECOMMENDATIONS = {
-    // Качество изображения
+    
     poor_quality: {
         ru: 'Сделайте новое фото в хорошем освещении',
         uz: 'Yaxshi yoritilgan joyda yangi rasm oling',
@@ -303,7 +300,7 @@ const REJECTION_RECOMMENDATIONS = {
         en: 'Change angle to avoid reflections'
     },
 
-    // Валидность документа
+    
     expired: {
         ru: 'Обновите документ и загрузите новый',
         uz: 'Hujjatni yangilang va yangisini yuklang',
@@ -320,7 +317,7 @@ const REJECTION_RECOMMENDATIONS = {
         en: 'Provide original document for verification'
     },
 
-    // Полнота информации
+    
     missing_pages: {
         ru: 'Загрузите все страницы документа',
         uz: 'Hujjatning barcha sahifalarini yuklang',
@@ -342,7 +339,7 @@ const REJECTION_RECOMMENDATIONS = {
         en: 'Upload document with photo'
     },
 
-    // Соответствие данных
+    
     name_mismatch: {
         ru: 'Проверьте правильность ФИО в профиле',
         uz: 'Profildagi F.I.O to\'g\'riligini tekshiring',
@@ -354,14 +351,14 @@ const REJECTION_RECOMMENDATIONS = {
         en: 'Upload document with your photo'
     },
 
-    // Тип документа
+    
     wrong_document_type: {
         ru: 'Загрузите документ требуемого типа',
         uz: 'Talab qilingan turdagi hujjatni yuklang',
         en: 'Upload required document type'
     },
 
-    // Специфичные
+    
     wrong_category: {
         ru: 'Необходима категория B для работы водителем',
         uz: 'Haydovchi bo\'lish uchun B toifasi kerak',
@@ -373,7 +370,7 @@ const REJECTION_RECOMMENDATIONS = {
         en: 'Activate business in tax service'
     },
 
-    // Общая рекомендация
+    
     other: {
         ru: 'Свяжитесь с поддержкой для уточнения',
         uz: 'Aniqlashtirish uchun qo\'llab-quvvatlash xizmatiga murojaat qiling',
@@ -381,9 +378,9 @@ const REJECTION_RECOMMENDATIONS = {
     }
 };
 
-// Специфичные причины для разных типов документов
+
 const DOCUMENT_SPECIFIC_REASONS = {
-    // Паспорт
+    
     passport: [
         REJECTION_REASONS.EXPIRED,
         REJECTION_REASONS.PHOTO_MISMATCH,
@@ -392,7 +389,7 @@ const DOCUMENT_SPECIFIC_REASONS = {
         REJECTION_REASONS.POOR_QUALITY
     ],
 
-    // Водительские права
+    
     driver_license: [
         REJECTION_REASONS.EXPIRED,
         REJECTION_REASONS.WRONG_CATEGORY,
@@ -401,7 +398,7 @@ const DOCUMENT_SPECIFIC_REASONS = {
         REJECTION_REASONS.POOR_QUALITY
     ],
 
-    // Бизнес лицензия
+    
     business_license: [
         REJECTION_REASONS.EXPIRED,
         REJECTION_REASONS.BUSINESS_INACTIVE,
@@ -410,7 +407,7 @@ const DOCUMENT_SPECIFIC_REASONS = {
         REJECTION_REASONS.NAME_MISMATCH
     ],
 
-    // Налоговый сертификат
+    
     tax_certificate: [
         REJECTION_REASONS.EXPIRED,
         REJECTION_REASONS.TAX_DEBT,
@@ -418,7 +415,7 @@ const DOCUMENT_SPECIFIC_REASONS = {
         REJECTION_REASONS.MISSING_STAMPS
     ],
 
-    // Профессиональные сертификаты
+    
     professional_license: [
         REJECTION_REASONS.EXPIRED,
         REJECTION_REASONS.INVALID_LICENSE_TYPE,
@@ -427,7 +424,7 @@ const DOCUMENT_SPECIFIC_REASONS = {
     ]
 };
 
-// Приоритеты причин (для сортировки)
+
 const REJECTION_PRIORITY = {
     [REJECTION_REASONS.FAKE_DOCUMENT]: 1,
     [REJECTION_REASONS.DOCUMENT_TAMPERED]: 2,
@@ -441,11 +438,9 @@ const REJECTION_PRIORITY = {
     [REJECTION_REASONS.OTHER]: 10
 };
 
-// Вспомогательные функции
 
-/**
- * Получить описание причины отклонения
- */
+
+
 function getRejectionDescription(reason, lang = 'ru') {
     const descriptions = REJECTION_DESCRIPTIONS[reason];
     if (!descriptions) return reason;
@@ -453,9 +448,7 @@ function getRejectionDescription(reason, lang = 'ru') {
     return descriptions[lang] || descriptions.ru || reason;
 }
 
-/**
- * Получить рекомендацию по исправлению
- */
+
 function getRejectionRecommendation(reason, lang = 'ru') {
     const recommendations = REJECTION_RECOMMENDATIONS[reason];
     if (!recommendations) {
@@ -465,9 +458,7 @@ function getRejectionRecommendation(reason, lang = 'ru') {
     return recommendations[lang] || recommendations.ru || '';
 }
 
-/**
- * Получить полную информацию о причине отклонения
- */
+
 function getRejectionInfo(reason, lang = 'ru') {
     return {
         code: reason,
@@ -477,20 +468,16 @@ function getRejectionInfo(reason, lang = 'ru') {
     };
 }
 
-/**
- * Получить причины отклонения для типа документа
- */
+
 function getReasonsForDocumentType(documentType) {
     const specificReasons = DOCUMENT_SPECIFIC_REASONS[documentType] || [];
     const commonReasons = Object.values(REJECTION_REASONS);
 
-    // Объединяем специфичные и общие причины
+    
     return [...new Set([...specificReasons, ...commonReasons])];
 }
 
-/**
- * Проверить, является ли причина критичной
- */
+
 function isCriticalRejection(reason) {
     const criticalReasons = [
         REJECTION_REASONS.FAKE_DOCUMENT,
@@ -501,9 +488,7 @@ function isCriticalRejection(reason) {
     return criticalReasons.includes(reason);
 }
 
-/**
- * Получить категорию причины
- */
+
 function getRejectionCategory(reason) {
     for (const [category, reasons] of Object.entries(REJECTION_CATEGORIES)) {
         if (reasons.includes(reason)) {
@@ -513,9 +498,7 @@ function getRejectionCategory(reason) {
     return 'OTHER';
 }
 
-/**
- * Форматировать причины отклонения для ответа
- */
+
 function formatRejectionResponse(reasons, lang = 'ru') {
     if (!Array.isArray(reasons)) {
         reasons = [reasons];
@@ -526,16 +509,14 @@ function formatRejectionResponse(reasons, lang = 'ru') {
         .sort((a, b) => a.priority - b.priority);
 }
 
-/**
- * Валидация причины отклонения
- */
+
 function isValidRejectionReason(reason) {
     return Object.values(REJECTION_REASONS).includes(reason);
 }
 
-// Экспорт
+
 module.exports = {
-    // Основные константы
+    
     REJECTION_REASONS,
     REJECTION_CATEGORIES,
     REJECTION_DESCRIPTIONS,
@@ -543,7 +524,7 @@ module.exports = {
     DOCUMENT_SPECIFIC_REASONS,
     REJECTION_PRIORITY,
 
-    // Функции
+    
     getRejectionDescription,
     getRejectionRecommendation,
     getRejectionInfo,

@@ -1,36 +1,36 @@
-// config/notification.config.js
+
 
 'use strict';
 
 module.exports = {
-    // Основные настройки
+    
     general: {
         enabled: process.env.NOTIFICATIONS_ENABLED !== 'false',
         batchSize: parseInt(process.env.NOTIFICATION_BATCH_SIZE || 100),
         defaultLanguage: process.env.DEFAULT_LOCALE || 'ru',
         supportedLanguages: ['ru', 'uz', 'en'],
 
-        // Режимы работы
+        
         testMode: process.env.NODE_ENV === 'test',
         dryRun: process.env.NOTIFICATION_DRY_RUN === 'true',
 
-        // Логирование
+        
         logLevel: process.env.NOTIFICATION_LOG_LEVEL || 'info',
         debugChannels: process.env.DEBUG_CHANNELS?.split(',') || []
     },
 
-    // Типы уведомлений (приоритеты и настройки)
+    
     types: {
-        // OTP и авторизация
+        
         OTP_CODE: {
             channels: ['sms'],
             priority: 'critical',
-            ttl: 300, // 5 минут
+            ttl: 300, 
             noThrottle: true,
             requireDelivery: true
         },
 
-        // Заказы - критичные
+        
         ORDER_CREATED: {
             channels: ['push', 'sms'],
             priority: 'high',
@@ -60,7 +60,7 @@ module.exports = {
             ttl: 3600
         },
 
-        // Платежи
+        
         PAYMENT_SUCCESS: {
             channels: ['push', 'email', 'inApp'],
             priority: 'high',
@@ -73,16 +73,16 @@ module.exports = {
             ttl: 3600
         },
 
-        // Маркетинг и промо
+        
         PROMO_OFFER: {
             channels: ['push', 'email'],
             priority: 'low',
-            ttl: 604800, // 7 дней
+            ttl: 604800, 
             respectQuietHours: true,
             requireConsent: true
         },
 
-        // Системные
+        
         SYSTEM_MAINTENANCE: {
             channels: ['push', 'email', 'inApp'],
             priority: 'normal',
@@ -96,9 +96,9 @@ module.exports = {
         }
     },
 
-    // Настройки каналов доставки
+    
     channels: {
-        // Push уведомления (FCM)
+        
         push: {
             enabled: process.env.FCM_ENABLED !== 'false',
             provider: 'fcm',
@@ -106,16 +106,16 @@ module.exports = {
             fcm: {
                 serverKey: process.env.FCM_SERVER_KEY,
                 senderId: process.env.FCM_SENDER_ID,
-                apiUrl: 'https://fcm.googleapis.com/fcm/send',
+                apiUrl: 'https:
 
-                // Настройки отправки
+                
                 options: {
                     priority: 'high',
                     contentAvailable: true,
                     mutableContent: true,
-                    ttl: 86400, // 24 часа по умолчанию
+                    ttl: 86400, 
 
-                    // Android специфичные
+                    
                     android: {
                         channelId: 'yordam24_default',
                         sound: 'default',
@@ -123,7 +123,7 @@ module.exports = {
                         icon: 'ic_notification'
                     },
 
-                    // iOS специфичные
+                    
                     ios: {
                         sound: 'default.caf',
                         badge: true,
@@ -132,7 +132,7 @@ module.exports = {
                 }
             },
 
-            // Rate limiting
+            
             rateLimit: {
                 perDevice: {
                     hourly: 20,
@@ -144,37 +144,37 @@ module.exports = {
                 }
             },
 
-            // Retry политика
+            
             retry: {
                 enabled: true,
                 maxAttempts: 3,
                 backoff: 'exponential',
-                delays: [1000, 5000, 15000] // мс
+                delays: [1000, 5000, 15000] 
             }
         },
 
-        // SMS уведомления
+        
         sms: {
             enabled: process.env.SMS_ENABLED !== 'false',
             primaryProvider: process.env.SMS_PROVIDER || 'playmobile',
 
-            // Провайдеры для Узбекистана
+            
             providers: {
                 playmobile: {
                     enabled: true,
                     priority: 1,
-                    apiUrl: process.env.PLAYMOBILE_URL || 'https://api.playmobile.uz/v1/sms/send',
+                    apiUrl: process.env.PLAYMOBILE_URL || 'https:
                     apiKey: process.env.PLAYMOBILE_API_KEY,
                     sender: process.env.PLAYMOBILE_SENDER || 'Yordam24',
 
-                    // Специфичные настройки
+                    
                     supportsBulk: true,
                     maxBulkSize: 1000,
                     encoding: 'utf-8',
 
-                    // Стоимость (для аналитики)
+                    
                     pricing: {
-                        local: 25, // сум за SMS
+                        local: 25, 
                         international: 150
                     }
                 },
@@ -182,13 +182,13 @@ module.exports = {
                 eskiz: {
                     enabled: !!process.env.ESKIZ_EMAIL,
                     priority: 2,
-                    apiUrl: process.env.ESKIZ_URL || 'https://notify.eskiz.uz/api/message/sms/send',
-                    authUrl: 'https://notify.eskiz.uz/api/auth/login',
+                    apiUrl: process.env.ESKIZ_URL || 'https:
+                    authUrl: 'https:
                     email: process.env.ESKIZ_EMAIL,
                     password: process.env.ESKIZ_PASSWORD,
                     sender: process.env.ESKIZ_SENDER || 'Yordam24',
 
-                    tokenTTL: 25 * 24 * 60 * 60, // 25 дней
+                    tokenTTL: 25 * 24 * 60 * 60, 
                     supportsBulk: true,
                     maxBulkSize: 500
                 },
@@ -196,7 +196,7 @@ module.exports = {
                 smsfly: {
                     enabled: !!process.env.SMSFLY_API_KEY,
                     priority: 3,
-                    apiUrl: process.env.SMSFLY_URL || 'https://sms-fly.com/api/v2/api.php',
+                    apiUrl: process.env.SMSFLY_URL || 'https:
                     apiKey: process.env.SMSFLY_API_KEY,
                     sender: process.env.SMSFLY_SENDER || 'Yordam24',
 
@@ -204,20 +204,20 @@ module.exports = {
                 }
             },
 
-            // Общие настройки SMS
+            
             settings: {
-                // Длина сообщения
+                
                 maxLength: 160,
                 maxParts: 3,
                 encoding: 'utf-8',
 
-                // Валидация номеров для UZ
+                
                 phoneValidation: {
                     pattern: /^\+998[0-9]{9}$/,
                     prefixes: ['90', '91', '93', '94', '95', '97', '98', '99', '33', '88']
                 },
 
-                // Подозрительные паттерны
+                
                 suspiciousPatterns: [
                     /^998[0-9]{2}0{7}$/,
                     /^998[0-9]{2}1{7}$/,
@@ -225,7 +225,7 @@ module.exports = {
                 ]
             },
 
-            // Rate limiting
+            
             rateLimit: {
                 global: {
                     perSecond: 10,
@@ -242,23 +242,23 @@ module.exports = {
                 }
             },
 
-            // Security
+            
             security: {
-                blacklistTTL: 86400, // 24 часа
-                maxOTPperPhone: 5, // за час
+                blacklistTTL: 86400, 
+                maxOTPperPhone: 5, 
                 blockAfterFailures: 10
             },
 
-            // Retry
+            
             retry: {
                 enabled: true,
                 maxAttempts: 2,
                 delays: [5000, 15000],
-                changeProvider: true // Пробовать другого провайдера
+                changeProvider: true 
             }
         },
 
-        // Email уведомления
+        
         email: {
             enabled: process.env.EMAIL_ENABLED !== 'false',
             provider: process.env.EMAIL_PROVIDER || 'smtp',
@@ -272,13 +272,13 @@ module.exports = {
                     pass: process.env.EMAIL_PASSWORD
                 },
 
-                // Настройки отправителя
+                
                 from: {
                     name: process.env.EMAIL_FROM_NAME || 'Yordam24',
                     address: process.env.EMAIL_FROM_ADDRESS || 'noreply@yordam24.uz'
                 },
 
-                // Настройки пула
+                
                 pool: true,
                 maxConnections: 5,
                 maxMessages: 100,
@@ -286,14 +286,14 @@ module.exports = {
                 rateLimit: 5
             },
 
-            // Шаблоны
+            
             templates: {
                 path: './templates/email',
                 engine: 'handlebars',
                 cache: process.env.NODE_ENV === 'production'
             },
 
-            // Rate limiting
+            
             rateLimit: {
                 perEmail: {
                     hourly: 5,
@@ -305,40 +305,40 @@ module.exports = {
                 }
             },
 
-            // Retry
+            
             retry: {
                 enabled: true,
                 maxAttempts: 3,
-                delays: [30000, 300000] // 30 сек, 5 мин
+                delays: [30000, 300000] 
             }
         },
 
-        // In-App уведомления
+        
         inApp: {
             enabled: true,
 
-            // Настройки хранения
+            
             storage: {
-                ttl: 30 * 24 * 60 * 60, // 30 дней
+                ttl: 30 * 24 * 60 * 60, 
                 maxPerUser: 100,
 
-                // Автоочистка
+                
                 autoCleanup: {
                     enabled: true,
-                    olderThan: 90 * 24 * 60 * 60, // 90 дней
-                    readOlderThan: 30 * 24 * 60 * 60 // 30 дней для прочитанных
+                    olderThan: 90 * 24 * 60 * 60, 
+                    readOlderThan: 30 * 24 * 60 * 60 
                 }
             },
 
-            // WebSocket настройки
+            
             realtime: {
                 enabled: true,
-                broadcastDelay: 100 // мс
+                broadcastDelay: 100 
             }
         }
     },
 
-    // Настройки приоритетов
+    
     priorities: {
         critical: {
             order: 0,
@@ -368,18 +368,18 @@ module.exports = {
         }
     },
 
-    // Throttling (ограничение частоты)
+    
     throttling: {
         enabled: process.env.THROTTLING_ENABLED !== 'false',
 
-        // Глобальные лимиты
+        
         global: {
             perSecond: 100,
             perMinute: 3000,
             perHour: 50000
         },
 
-        // По типам
+        
         byType: {
             marketing: {
                 perUserDaily: 3,
@@ -391,24 +391,24 @@ module.exports = {
             }
         },
 
-        // Исключения
+        
         whitelist: {
             users: process.env.THROTTLE_WHITELIST_USERS?.split(',') || [],
             types: ['OTP_CODE', 'ACCOUNT_SECURITY']
         }
     },
 
-    // Quiet hours (тихие часы)
+    
     quietHours: {
         enabled: process.env.QUIET_HOURS_ENABLED !== 'false',
 
-        // Дефолтные настройки
+        
         default: {
             start: '22:00',
             end: '08:00',
             timezone: 'Asia/Tashkent',
 
-            // Разрешенные типы в тихие часы
+            
             allowedTypes: [
                 'OTP_CODE',
                 'ORDER_ASSIGNED',
@@ -417,33 +417,33 @@ module.exports = {
             ]
         },
 
-        // Можно переопределить для пользователя
+        
         respectUserPreferences: true
     },
 
-    // Шаблоны
+    
     templates: {
-        // Путь к шаблонам
+        
         basePath: './templates/notifications',
 
-        // Движок шаблонов
+        
         engine: 'handlebars',
 
-        // Кэширование
+        
         cache: {
             enabled: process.env.NODE_ENV === 'production',
-            ttl: 3600 // 1 час
+            ttl: 3600 
         },
 
-        // Переменные по умолчанию
+        
         defaultVars: {
             appName: 'Yordam24',
             supportPhone: '+998 71 200 00 24',
             supportEmail: 'support@yordam24.uz',
-            website: 'https://yordam24.uz'
+            website: 'https:
         },
 
-        // Хелперы для шаблонов
+        
         helpers: {
             formatPrice: 'number_format',
             formatDate: 'date_format',
@@ -451,19 +451,19 @@ module.exports = {
         }
     },
 
-    // Батчинг (группировка)
+    
     batching: {
         enabled: true,
 
-        // Настройки батчей
+        
         settings: {
             maxBatchSize: 1000,
-            batchWindow: 60000, // 1 минута
+            batchWindow: 60000, 
 
-            // Группировка по
+            
             groupBy: ['type', 'channel', 'priority'],
 
-            // Типы, которые можно батчить
+            
             batchableTypes: [
                 'PROMO_OFFER',
                 'SYSTEM_UPDATE',
@@ -472,11 +472,11 @@ module.exports = {
         }
     },
 
-    // A/B тестирование
+    
     experiments: {
         enabled: process.env.AB_TESTING_ENABLED === 'true',
 
-        // Активные эксперименты
+        
         active: {
             pushTiming: {
                 enabled: false,
@@ -491,11 +491,11 @@ module.exports = {
         }
     },
 
-    // Аналитика
+    
     analytics: {
         enabled: true,
 
-        // Трекинг событий
+        
         events: {
             sent: true,
             delivered: true,
@@ -505,12 +505,12 @@ module.exports = {
             failed: true
         },
 
-        // Экспорт метрик
+        
         export: {
             enabled: process.env.METRICS_EXPORT_ENABLED === 'true',
-            interval: 60000, // 1 минута
+            interval: 60000, 
 
-            // Prometheus метрики
+            
             prometheus: {
                 enabled: true,
                 prefix: 'yordam24_notifications_'
@@ -518,9 +518,9 @@ module.exports = {
         }
     },
 
-    // Очереди и обработка
+    
     processing: {
-        // Настройки воркеров
+        
         workers: {
             push: parseInt(process.env.PUSH_WORKERS || 3),
             sms: parseInt(process.env.SMS_WORKERS || 2),
@@ -528,9 +528,9 @@ module.exports = {
             inApp: parseInt(process.env.INAPP_WORKERS || 1)
         },
 
-        // Настройки очередей
+        
         queues: {
-            // Приоритетные очереди
+            
             priorities: {
                 critical: { concurrency: 10, rateLimit: null },
                 high: { concurrency: 5, rateLimit: 100 },
@@ -538,17 +538,17 @@ module.exports = {
                 low: { concurrency: 1, rateLimit: 10 }
             },
 
-            // Dead letter queue
+            
             dlq: {
                 enabled: true,
                 maxRetries: 3,
-                ttl: 7 * 24 * 60 * 60 // 7 дней
+                ttl: 7 * 24 * 60 * 60 
             }
         },
 
-        // Обработка ошибок
+        
         errorHandling: {
-            // Действия при ошибках
+            
             strategies: {
                 'rate_limited': 'exponential_backoff',
                 'provider_error': 'failover',
@@ -556,32 +556,32 @@ module.exports = {
                 'user_blocked': 'disable_channel'
             },
 
-            // Алерты
+            
             alerts: {
                 enabled: true,
                 thresholds: {
-                    errorRate: 0.1, // 10%
+                    errorRate: 0.1, 
                     consecutiveFailures: 10
                 }
             }
         }
     },
 
-    // Безопасность
+    
     security: {
-        // Шифрование чувствительных данных
+        
         encryption: {
             enabled: process.env.ENCRYPT_NOTIFICATIONS === 'true',
             algorithm: 'aes-256-gcm',
             fields: ['content.body', 'content.data']
         },
 
-        // Аудит
+        
         audit: {
             enabled: true,
             logLevel: 'info',
 
-            // События для аудита
+            
             events: [
                 'notification_sent',
                 'notification_failed',
@@ -590,11 +590,11 @@ module.exports = {
             ]
         },
 
-        // Защита от спама
+        
         antispam: {
             enabled: true,
 
-            // Проверки
+            
             checks: {
                 duplicateContent: true,
                 rateLimits: true,
@@ -603,16 +603,16 @@ module.exports = {
         }
     },
 
-    // Фолбэки и деградация
+    
     fallbacks: {
-        // Альтернативные каналы
+        
         channelFallbacks: {
             push: ['sms', 'email'],
             sms: ['email', 'push'],
             email: ['push', 'sms']
         },
 
-        // Деградация при нагрузке
+        
         degradation: {
             enabled: true,
             thresholds: {
@@ -621,7 +621,7 @@ module.exports = {
                 queueSize: 10000
             },
 
-            // Действия при деградации
+            
             actions: {
                 disableLowPriority: true,
                 reduceWorkers: true,
@@ -630,19 +630,19 @@ module.exports = {
         }
     },
 
-    // Локализация
+    
     localization: {
         defaultLanguage: 'ru',
         fallbackLanguage: 'ru',
 
-        // Поддерживаемые языки
+        
         languages: {
             ru: { name: 'Русский', enabled: true },
             uz: { name: "O'zbek", enabled: true },
             en: { name: 'English', enabled: true }
         },
 
-        // Детекция языка
+        
         detection: {
             fromUser: true,
             fromDevice: true,
@@ -650,13 +650,13 @@ module.exports = {
         }
     },
 
-    // Мониторинг и health checks
+    
     monitoring: {
         healthCheck: {
             enabled: true,
-            interval: 30000, // 30 секунд
+            interval: 30000, 
 
-            // Проверки
+            
             checks: {
                 providers: true,
                 queues: true,
@@ -665,22 +665,22 @@ module.exports = {
             }
         },
 
-        // Метрики
+        
         metrics: {
-            // Счетчики
+            
             counters: [
                 'notifications_sent_total',
                 'notifications_failed_total',
                 'notifications_delivered_total'
             ],
 
-            // Гистограммы
+            
             histograms: [
                 'notification_processing_duration',
                 'notification_delivery_time'
             ],
 
-            // Gauges
+            
             gauges: [
                 'notification_queue_size',
                 'active_workers'

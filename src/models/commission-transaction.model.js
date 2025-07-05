@@ -1,4 +1,4 @@
-// src/models/commission-transaction.model.js
+
 
 'use strict';
 
@@ -8,214 +8,214 @@ const { COMMISSION_TYPES, COMMISSION_CATEGORIES, COMMISSION_TARGETS } = require(
 const { COMMISSION_STATUS } = require('../utils/constants/commission-status');
 const { USER_ROLES } = require('../utils/constants/user-roles');
 
-// Источники комиссионных транзакций
+
 const COMMISSION_SOURCES = {
-    ORDER: 'order',                         // Комиссия с заказа
-    WITHDRAWAL: 'withdrawal',               // Комиссия за вывод средств
-    PENALTY: 'penalty',                     // Штрафная комиссия
-    ADJUSTMENT: 'adjustment',               // Корректировка комиссии
-    SUBSCRIPTION: 'subscription',           // Подписка/абонплата
-    PROMOTION: 'promotion'                  // Промо комиссия
+    ORDER: 'order',                         
+    WITHDRAWAL: 'withdrawal',               
+    PENALTY: 'penalty',                     
+    ADJUSTMENT: 'adjustment',               
+    SUBSCRIPTION: 'subscription',           
+    PROMOTION: 'promotion'                  
 };
 
-// Методы расчета комиссии
+
 const CALCULATION_METHODS = {
-    STANDARD: 'standard',                   // Стандартный расчет
-    TIERED: 'tiered',                      // Многоуровневый
-    VOLUME_BASED: 'volume_based',           // На основе объема
-    TIME_BASED: 'time_based',               // На основе времени
-    CUSTOM: 'custom'                        // Кастомный расчет
+    STANDARD: 'standard',                   
+    TIERED: 'tiered',                      
+    VOLUME_BASED: 'volume_based',           
+    TIME_BASED: 'time_based',               
+    CUSTOM: 'custom'                        
 };
 
-// Статусы обработки комиссии
+
 const PROCESSING_STATUS = {
-    CALCULATED: 'calculated',               // Рассчитана
-    APPLIED: 'applied',                     // Применена
-    DISTRIBUTED: 'distributed',             // Распределена
-    SETTLED: 'settled',                     // Исполнена
-    REVERSED: 'reversed',                   // Отменена
-    DISPUTED: 'disputed'                    // Оспорена
+    CALCULATED: 'calculated',               
+    APPLIED: 'applied',                     
+    DISTRIBUTED: 'distributed',             
+    SETTLED: 'settled',                     
+    REVERSED: 'reversed',                   
+    DISPUTED: 'disputed'                    
 };
 
-// Схема транзакции комиссии
+
 const commissionTransactionSchema = {
     _id: ObjectId,
 
-    // Уникальный идентификатор транзакции
-    transactionId: String,                  // Уникальный ID транзакции
-    commissionId: String,                   // ID комиссии для внешних систем
+    
+    transactionId: String,                  
+    commissionId: String,                   
 
-    // Основная информация
-    source: String,                         // Из COMMISSION_SOURCES
-    type: String,                           // Из COMMISSION_TYPES
-    category: String,                       // Из COMMISSION_CATEGORIES
-    status: String,                         // Из PROCESSING_STATUS
+    
+    source: String,                         
+    type: String,                           
+    category: String,                       
+    status: String,                         
 
-    // Связи с другими сущностями
+    
     references: {
-        // Основная транзакция
-        parentTransactionId: ObjectId,      // ID родительской транзакции
+        
+        parentTransactionId: ObjectId,      
 
-        // Заказ (если применимо)
+        
         orderId: ObjectId,
-        orderNumber: String,                // Для быстрого поиска
+        orderNumber: String,                
 
-        // Участники
-        payerId: ObjectId,                  // Кто платит комиссию
-        payerType: String,                  // master, sto, client
-        payerRole: String,                  // Из USER_ROLES
+        
+        payerId: ObjectId,                  
+        payerType: String,                  
+        payerRole: String,                  
 
-        // Получатель комиссии (обычно платформа)
-        recipientId: ObjectId,              // ID получателя
-        recipientType: String,              // platform, partner
+        
+        recipientId: ObjectId,              
+        recipientType: String,              
 
-        // Дополнительные связи
-        stoId: ObjectId,                    // Если связано с СТО
-        masterId: ObjectId,                 // Если связано с мастером
+        
+        stoId: ObjectId,                    
+        masterId: ObjectId,                 
 
-        // Связанные комиссионные транзакции
-        relatedCommissions: [ObjectId]      // Например, при split
+        
+        relatedCommissions: [ObjectId]      
     },
 
-    // Детали расчета
+    
     calculation: {
-        // Метод расчета
-        method: String,                     // Из CALCULATION_METHODS
+        
+        method: String,                     
 
-        // Базовая сумма для расчета
-        baseAmount: Number,                 // Сумма, от которой считается комиссия
-        baseCurrency: String,               // Валюта базовой суммы
+        
+        baseAmount: Number,                 
+        baseCurrency: String,               
 
-        // Параметры расчета
+        
         rate: {
-            percentage: Number,             // Процентная ставка
-            fixed: Number,                  // Фиксированная сумма
+            percentage: Number,             
+            fixed: Number,                  
 
-            // Для tiered
+            
             tiers: [{
                 from: Number,
                 to: Number,
                 rate: Number
             }],
 
-            // Источник ставки
-            source: String,                 // config, override, promo
-            rateId: ObjectId               // ID ставки из commission-rate
+            
+            source: String,                 
+            rateId: ObjectId               
         },
 
-        // Модификаторы
+        
         modifiers: {
-            // Множители
-            surgeMultiplier: Number,        // Surge pricing
-            volumeMultiplier: Number,       // Объемная скидка
-            timeMultiplier: Number,         // Временной множитель
-            customMultiplier: Number,       // Кастомный множитель
+            
+            surgeMultiplier: Number,        
+            volumeMultiplier: Number,       
+            timeMultiplier: Number,         
+            customMultiplier: Number,       
 
-            // Скидки/надбавки
+            
             discounts: [{
-                type: String,               // volume, promo, loyalty
+                type: String,               
                 amount: Number,
                 percentage: Number,
                 reason: String
             }],
 
             penalties: [{
-                type: String,               // cancellation, low_rating
+                type: String,               
                 amount: Number,
                 percentage: Number,
                 reason: String
             }]
         },
 
-        // Детальный расчет
+        
         breakdown: {
-            baseCommission: Number,         // Базовая комиссия
-            surgeAmount: Number,            // Surge надбавка
-            discountAmount: Number,         // Сумма скидок
-            penaltyAmount: Number,          // Сумма штрафов
-            adjustmentAmount: Number,       // Корректировки
+            baseCommission: Number,         
+            surgeAmount: Number,            
+            discountAmount: Number,         
+            penaltyAmount: Number,          
+            adjustmentAmount: Number,       
 
-            // Промежуточные расчеты
-            subtotal: Number,               // До округления
-            roundingAmount: Number,         // Сумма округления
+            
+            subtotal: Number,               
+            roundingAmount: Number,         
 
-            // НДС
-            vatRate: Number,                // Ставка НДС
-            vatAmount: Number,              // Сумма НДС
+            
+            vatRate: Number,                
+            vatAmount: Number,              
 
-            // Итог
-            total: Number                   // Итоговая комиссия
+            
+            total: Number                   
         },
 
-        // Валидация расчета
+        
         validation: {
-            minAmount: Number,              // Минимальная комиссия
-            maxAmount: Number,              // Максимальная комиссия
-            wasLimited: Boolean,            // Была ли применена граница
-            originalAmount: Number          // Сумма до применения лимитов
+            minAmount: Number,              
+            maxAmount: Number,              
+            wasLimited: Boolean,            
+            originalAmount: Number          
         },
 
-        // Когда рассчитано
+        
         calculatedAt: Date,
-        calculatedBy: String               // system, manual, override
+        calculatedBy: String               
     },
 
-    // Итоговая комиссия
+    
     amount: {
-        value: Number,                      // Итоговая сумма комиссии
-        currency: String,                   // Валюта (UZS)
+        value: Number,                      
+        currency: String,                   
 
-        // Для конвертации
-        originalValue: Number,              // Если была конвертация
+        
+        originalValue: Number,              
         originalCurrency: String,
         exchangeRate: Number,
 
-        // Составляющие
+        
         components: {
-            platform: Number,               // Доля платформы
-            referral: Number,               // Реферальные выплаты
-            marketing: Number,              // Маркетинговый фонд
-            reserve: Number                 // Резерв
+            platform: Number,               
+            referral: Number,               
+            marketing: Number,              
+            reserve: Number                 
         }
     },
 
-    // Распределение комиссии
+    
     distribution: {
-        // Правила распределения
+        
         rules: {
-            platformShare: Number,          // Доля платформы (0.7 = 70%)
-            referralShare: Number,          // Доля рефералов
-            marketingShare: Number,         // Доля маркетинга
-            reserveShare: Number            // Доля резерва
+            platformShare: Number,          
+            referralShare: Number,          
+            marketingShare: Number,         
+            reserveShare: Number            
         },
 
-        // Получатели
+        
         recipients: [{
-            recipientId: ObjectId,          // ID получателя
-            recipientType: String,          // platform, referrer, fund
+            recipientId: ObjectId,          
+            recipientType: String,          
 
-            share: Number,                  // Доля (0.5 = 50%)
-            amount: Number,                 // Сумма
+            share: Number,                  
+            amount: Number,                 
 
-            // Кошелек для зачисления
+            
             walletId: ObjectId,
 
-            // Статус распределения
-            status: String,                 // pending, completed
+            
+            status: String,                 
             distributedAt: Date,
 
-            // Связанная транзакция
+            
             transactionId: ObjectId
         }],
 
-        // Статус распределения
-        status: String,                     // pending, partial, completed
+        
+        status: String,                     
         completedAt: Date
     },
 
-    // Обработка и исполнение
+    
     processing: {
-        // Этапы обработки
+        
         stages: {
             calculated: {
                 completed: Boolean,
@@ -235,7 +235,7 @@ const commissionTransactionSchema = {
             distributed: {
                 completed: Boolean,
                 timestamp: Date,
-                distributions: Number       // Количество распределений
+                distributions: Number       
             },
             settled: {
                 completed: Boolean,
@@ -244,16 +244,16 @@ const commissionTransactionSchema = {
             }
         },
 
-        // Автоматическая обработка
+        
         automation: {
             enabled: Boolean,
-            processAfter: Date,             // Когда обработать
+            processAfter: Date,             
             retryCount: Number,
             lastRetryAt: Date,
             nextRetryAt: Date
         },
 
-        // Ошибки обработки
+        
         errors: [{
             stage: String,
             code: String,
@@ -263,39 +263,39 @@ const commissionTransactionSchema = {
         }]
     },
 
-    // Оспаривание и корректировки
+    
     adjustments: {
-        // История корректировок
+        
         history: [{
-            type: String,                   // refund, correction, penalty
+            type: String,                   
             amount: Number,
             reason: String,
 
-            // До и после
+            
             previousAmount: Number,
             newAmount: Number,
 
-            // Кто и когда
+            
             adjustedBy: ObjectId,
             adjustedByRole: String,
             adjustedAt: Date,
 
-            // Подтверждение
+            
             approved: Boolean,
             approvedBy: ObjectId,
             approvedAt: Date
         }],
 
-        // Споры
+        
         disputes: [{
-            status: String,                 // open, investigating, resolved
+            status: String,                 
             reason: String,
             description: String,
 
             openedBy: ObjectId,
             openedAt: Date,
 
-            // Доказательства
+            
             evidence: [{
                 type: String,
                 url: String,
@@ -303,43 +303,43 @@ const commissionTransactionSchema = {
                 uploadedAt: Date
             }],
 
-            // Решение
+            
             resolution: {
-                decision: String,           // refund, reject, partial
-                amount: Number,             // Сумма корректировки
+                decision: String,           
+                amount: Number,             
                 comment: String,
                 resolvedBy: ObjectId,
                 resolvedAt: Date
             }
         }],
 
-        // Итоговые корректировки
-        totalAdjustments: Number,           // Общая сумма корректировок
-        finalAmount: Number                 // Итоговая сумма после корректировок
+        
+        totalAdjustments: Number,           
+        finalAmount: Number                 
     },
 
-    // Соответствие правилам
+    
     compliance: {
-        // Проверки
+        
         checks: {
-            rateCompliance: Boolean,        // Соответствует утвержденным ставкам
-            limitCompliance: Boolean,       // В рамках лимитов
-            policyCompliance: Boolean,      // Соответствует политикам
+            rateCompliance: Boolean,        
+            limitCompliance: Boolean,       
+            policyCompliance: Boolean,      
 
-            // Детали несоответствий
+            
             violations: [{
                 type: String,
                 rule: String,
                 expected: Object,
                 actual: Object,
-                severity: String            // warning, error, critical
+                severity: String            
             }]
         },
 
-        // Одобрения
+        
         approvals: [{
-            requiredFor: String,            // high_amount, policy_exception
-            status: String,                 // pending, approved, rejected
+            requiredFor: String,            
+            status: String,                 
 
             approvedBy: ObjectId,
             approvedByRole: String,
@@ -348,15 +348,15 @@ const commissionTransactionSchema = {
             comment: String
         }],
 
-        // Аудит флаги
+        
         requiresReview: Boolean,
         reviewedBy: ObjectId,
         reviewedAt: Date
     },
 
-    // Отчетность
+    
     reporting: {
-        // Период отчетности
+        
         period: {
             year: Number,
             month: Number,
@@ -365,74 +365,74 @@ const commissionTransactionSchema = {
             day: Number
         },
 
-        // Категоризация для отчетов
+        
         categories: {
-            service: String,                // Тип услуги
-            region: String,                 // Регион
-            executorType: String,           // Тип исполнителя
-            customerSegment: String         // Сегмент клиента
+            service: String,                
+            region: String,                 
+            executorType: String,           
+            customerSegment: String         
         },
 
-        // Флаги для отчетов
+        
         flags: {
-            isHighValue: Boolean,           // Крупная сумма
-            isAbnormal: Boolean,            // Аномальная транзакция
-            isTest: Boolean,                // Тестовая
-            isExcludedFromReports: Boolean  // Исключить из отчетов
+            isHighValue: Boolean,           
+            isAbnormal: Boolean,            
+            isTest: Boolean,                
+            isExcludedFromReports: Boolean  
         },
 
-        // Метрики
+        
         metrics: {
-            effectiveRate: Number,          // Эффективная ставка
-            conversionTime: Number,         // Время от расчета до исполнения
-            processingDuration: Number      // Длительность обработки
+            effectiveRate: Number,          
+            conversionTime: Number,         
+            processingDuration: Number      
         }
     },
 
-    // Уведомления
+    
     notifications: {
-        // Кому отправлять
+        
         recipients: [{
             userId: ObjectId,
             role: String,
-            channels: [String]              // email, sms, push
+            channels: [String]              
         }],
 
-        // Отправленные уведомления
+        
         sent: [{
-            type: String,                   // calculated, distributed, disputed
+            type: String,                   
             channel: String,
             recipient: String,
             sentAt: Date,
-            status: String                  // sent, delivered, failed
+            status: String                  
         }]
     },
 
-    // Метаданные
+    
     metadata: {
-        // Версия правил расчета
+        
         rulesVersion: String,
         configVersion: String,
 
-        // Источник
-        source: String,                     // api, auto, manual, system
+        
+        source: String,                     
         sourceIp: String,
         userAgent: String,
 
-        // Внешние ссылки
+        
         externalReferences: {
             invoiceNumber: String,
             contractNumber: String,
             documentUrl: String
         },
 
-        // Теги
+        
         tags: [String],
 
-        // Кастомные поля
+        
         custom: Object,
 
-        // Заметки
+        
         notes: [{
             text: String,
             addedBy: ObjectId,
@@ -440,7 +440,7 @@ const commissionTransactionSchema = {
         }]
     },
 
-    // Временные метки
+    
     timestamps: {
         createdAt: Date,
         calculatedAt: Date,
@@ -449,28 +449,28 @@ const commissionTransactionSchema = {
         settledAt: Date,
         reversedAt: Date,
 
-        // Для периодических комиссий
+        
         periodStart: Date,
         periodEnd: Date
     },
 
-    // Служебные поля
-    version: Number,                        // Версия документа
-    isDeleted: Boolean,                     // Soft delete
+    
+    version: Number,                        
+    isDeleted: Boolean,                     
     deletedAt: Date
 };
 
-// Класс для работы с комиссионными транзакциями
+
 class CommissionTransactionModel {
     constructor(db) {
         this.collection = db.collection('commission_transactions');
         this.setupIndexes();
     }
 
-    // Создание индексов
+    
     async setupIndexes() {
         try {
-            // Уникальные индексы
+            
             await this.collection.createIndex(
                 { transactionId: 1 },
                 { unique: true, sparse: true }
@@ -481,7 +481,7 @@ class CommissionTransactionModel {
                 { unique: true, sparse: true }
             );
 
-            // Основные индексы для поиска
+            
             await this.collection.createIndex({ status: 1, 'timestamps.createdAt': -1 });
             await this.collection.createIndex({ 'references.orderId': 1 });
             await this.collection.createIndex({ 'references.parentTransactionId': 1 });
@@ -489,14 +489,14 @@ class CommissionTransactionModel {
             await this.collection.createIndex({ 'references.masterId': 1 });
             await this.collection.createIndex({ 'references.stoId': 1 });
 
-            // Индексы для обработки
+            
             await this.collection.createIndex({
                 'processing.automation.enabled': 1,
                 'processing.automation.processAfter': 1,
                 status: 1
             });
 
-            // Индексы для отчетности
+            
             await this.collection.createIndex({
                 'reporting.period.year': -1,
                 'reporting.period.month': -1,
@@ -508,7 +508,7 @@ class CommissionTransactionModel {
                 'timestamps.createdAt': -1
             });
 
-            // Составные индексы для аналитики
+            
             await this.collection.createIndex({
                 source: 1,
                 type: 1,
@@ -516,22 +516,22 @@ class CommissionTransactionModel {
                 'timestamps.createdAt': -1
             });
 
-            // Индексы для compliance
+            
             await this.collection.createIndex({
                 'compliance.requiresReview': 1,
                 'compliance.reviewedAt': 1
             });
 
-            // Индексы для споров
+            
             await this.collection.createIndex({
                 'adjustments.disputes.status': 1,
                 'adjustments.disputes.openedAt': -1
             });
 
-            // TTL индекс для архивации
+            
             await this.collection.createIndex(
                 { 'timestamps.createdAt': 1 },
-                { expireAfterSeconds: 365 * 24 * 60 * 60 } // 1 год
+                { expireAfterSeconds: 365 * 24 * 60 * 60 } 
             );
 
             console.log('✓ Commission transaction indexes created');
@@ -540,7 +540,7 @@ class CommissionTransactionModel {
         }
     }
 
-    // Создание новой комиссионной транзакции
+    
     async create(data) {
         const now = new Date();
 
@@ -551,7 +551,7 @@ class CommissionTransactionModel {
 
             ...data,
 
-            // Defaults
+            
             status: data.status || PROCESSING_STATUS.CALCULATED,
 
             calculation: {
@@ -607,7 +607,7 @@ class CommissionTransactionModel {
                 },
                 automation: {
                     enabled: true,
-                    processAfter: new Date(now.getTime() + 60000), // 1 минута
+                    processAfter: new Date(now.getTime() + 60000), 
                     retryCount: 0,
                     ...data.processing?.automation
                 },
@@ -636,7 +636,7 @@ class CommissionTransactionModel {
             reporting: {
                 period: this.getPeriodFromDate(now),
                 flags: {
-                    isHighValue: (data.amount?.value || 0) > 1000000, // 1M UZS
+                    isHighValue: (data.amount?.value || 0) > 1000000, 
                     isAbnormal: false,
                     isTest: false,
                     isExcludedFromReports: false
@@ -663,7 +663,7 @@ class CommissionTransactionModel {
         return { ...transaction, _id: result.insertedId };
     }
 
-    // Поиск по ID
+    
     async findById(id) {
         return await this.collection.findOne({
             _id: new ObjectId(id),
@@ -671,7 +671,7 @@ class CommissionTransactionModel {
         });
     }
 
-    // Поиск по ID транзакции
+    
     async findByTransactionId(transactionId) {
         return await this.collection.findOne({
             transactionId,
@@ -679,7 +679,7 @@ class CommissionTransactionModel {
         });
     }
 
-    // Поиск комиссий по заказу
+    
     async findByOrderId(orderId, options = {}) {
         const query = {
             'references.orderId': new ObjectId(orderId),
@@ -696,7 +696,7 @@ class CommissionTransactionModel {
             .toArray();
     }
 
-    // Поиск комиссий исполнителя
+    
     async findByExecutorId(executorId, executorType = 'master', options = {}) {
         const {
             startDate,
@@ -711,14 +711,14 @@ class CommissionTransactionModel {
             isDeleted: { $ne: true }
         };
 
-        // Фильтр по исполнителю
+        
         if (executorType === 'master') {
             query['references.masterId'] = new ObjectId(executorId);
         } else {
             query['references.stoId'] = new ObjectId(executorId);
         }
 
-        // Дополнительные фильтры
+        
         if (status) query.status = status;
         if (source) query.source = source;
 
@@ -736,7 +736,7 @@ class CommissionTransactionModel {
             .toArray();
     }
 
-    // Обновление статуса
+    
     async updateStatus(id, newStatus, details = {}) {
         const updateData = {
             status: newStatus,
@@ -747,7 +747,7 @@ class CommissionTransactionModel {
             }
         };
 
-        // Обновляем временные метки
+        
         const timestampMap = {
             [PROCESSING_STATUS.APPLIED]: 'appliedAt',
             [PROCESSING_STATUS.DISTRIBUTED]: 'distributedAt',
@@ -766,7 +766,7 @@ class CommissionTransactionModel {
         );
     }
 
-    // Применение корректировки
+    
     async applyAdjustment(id, adjustment) {
         const commission = await this.findById(id);
         if (!commission) {
@@ -800,7 +800,7 @@ class CommissionTransactionModel {
         );
     }
 
-    // Добавление спора
+    
     async addDispute(id, disputeData) {
         const dispute = {
             _id: new ObjectId(),
@@ -824,7 +824,7 @@ class CommissionTransactionModel {
         );
     }
 
-    // Распределение комиссии
+    
     async distributeCommission(id, distributionRules) {
         const commission = await this.findById(id);
         if (!commission) {
@@ -854,7 +854,7 @@ class CommissionTransactionModel {
         );
     }
 
-    // Поиск транзакций для автоматической обработки
+    
     async findForProcessing() {
         const now = new Date();
 
@@ -866,11 +866,11 @@ class CommissionTransactionModel {
         }).toArray();
     }
 
-    // Агрегация для отчетов
+    
     async aggregateCommissions(filters = {}) {
         const pipeline = [];
 
-        // Базовые фильтры
+        
         const match = {
             isDeleted: { $ne: true }
         };
@@ -887,7 +887,7 @@ class CommissionTransactionModel {
 
         pipeline.push({ $match: match });
 
-        // Группировка по периодам
+        
         pipeline.push({
             $group: {
                 _id: {
@@ -901,12 +901,12 @@ class CommissionTransactionModel {
                 avgAmount: { $avg: '$amount.value' },
                 totalAdjustments: { $sum: '$adjustments.totalAdjustments' },
 
-                // Распределение
+                
                 platformShare: { $sum: '$amount.components.platform' },
                 referralShare: { $sum: '$amount.components.referral' },
                 marketingShare: { $sum: '$amount.components.marketing' },
 
-                // Статусы
+                
                 disputed: {
                     $sum: {
                         $cond: [{ $eq: ['$status', PROCESSING_STATUS.DISPUTED] }, 1, 0]
@@ -915,7 +915,7 @@ class CommissionTransactionModel {
             }
         });
 
-        // Сортировка
+        
         pipeline.push({
             $sort: {
                 '_id.year': -1,
@@ -927,16 +927,16 @@ class CommissionTransactionModel {
         return await this.collection.aggregate(pipeline).toArray();
     }
 
-    // Вспомогательные методы
+    
 
-    // Генерация ID транзакции
+    
     generateTransactionId() {
         const timestamp = Date.now().toString(36);
         const random = Math.random().toString(36).substring(2, 8);
         return `CT${timestamp}${random}`.toUpperCase();
     }
 
-    // Генерация ID комиссии
+    
     generateCommissionId() {
         const date = new Date();
         const year = date.getFullYear();
@@ -945,7 +945,7 @@ class CommissionTransactionModel {
         return `COM-${year}${month}-${random}`.toUpperCase();
     }
 
-    // Получение периода из даты
+    
     getPeriodFromDate(date) {
         const d = new Date(date);
         return {
@@ -957,7 +957,7 @@ class CommissionTransactionModel {
         };
     }
 
-    // Получение номера недели
+    
     getWeekNumber(date) {
         const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
         const dayNum = d.getUTCDay() || 7;
@@ -966,7 +966,7 @@ class CommissionTransactionModel {
         return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     }
 
-    // Расчет распределения
+    
     calculateDistribution(amount, rules) {
         const distributions = [];
 
@@ -980,7 +980,7 @@ class CommissionTransactionModel {
             }
         });
 
-        // Корректировка остатка
+        
         const distributed = distributions.reduce((sum, d) => sum + d.amount, 0);
         const remainder = amount - distributed;
 
@@ -991,23 +991,23 @@ class CommissionTransactionModel {
         return distributions;
     }
 
-    // Валидация комиссии
+    
     async validateCommission(commission) {
         const errors = [];
 
-        // Проверка обязательных полей
+        
         if (!commission.source) errors.push('Source is required');
         if (!commission.type) errors.push('Type is required');
         if (!commission.references?.orderId && !commission.references?.parentTransactionId) {
             errors.push('Order ID or parent transaction ID is required');
         }
 
-        // Проверка суммы
+        
         if (!commission.amount?.value || commission.amount.value < 0) {
             errors.push('Valid amount is required');
         }
 
-        // Проверка расчета
+        
         if (commission.calculation?.breakdown) {
             const calculated = commission.calculation.breakdown.total;
             const stated = commission.amount.value;
@@ -1024,7 +1024,7 @@ class CommissionTransactionModel {
     }
 }
 
-// Экспортируем
+
 module.exports = {
     CommissionTransactionModel,
     COMMISSION_SOURCES,

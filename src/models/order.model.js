@@ -1,4 +1,4 @@
-// src/models/order.model.js
+
 
 'use strict';
 
@@ -16,14 +16,14 @@ const { PAYMENT_STATUS, PAYMENT_METHODS } = require('../utils/constants/payment-
 const { USER_ROLES } = require('../utils/constants/user-roles');
 const { HISTORY_EVENT_TYPES } = require('./order-history.model');
 
-// Типы заказов
+
 const ORDER_TYPES = {
-    IMMEDIATE: 'immediate',           // Срочный заказ
-    SCHEDULED: 'scheduled',           // Запланированный
-    RECURRING: 'recurring'            // Повторяющийся
+    IMMEDIATE: 'immediate',           
+    SCHEDULED: 'scheduled',           
+    RECURRING: 'recurring'            
 };
 
-// Источники заказа
+
 const ORDER_SOURCES = {
     MOBILE_APP: 'mobile_app',
     WEB: 'web',
@@ -32,7 +32,7 @@ const ORDER_SOURCES = {
     RECURRING: 'recurring'
 };
 
-// Приоритеты заказа
+
 const ORDER_PRIORITY = {
     LOW: 'low',
     NORMAL: 'normal',
@@ -41,62 +41,62 @@ const ORDER_PRIORITY = {
     CRITICAL: 'critical'
 };
 
-// Схема заказа
+
 const orderSchema = {
     _id: ObjectId,
 
-    // Номер заказа (человекочитаемый)
-    orderNumber: String,              // Y24-20240115-0001
+    
+    orderNumber: String,              
 
-    // Основная информация
-    type: String,                     // Из ORDER_TYPES
-    source: String,                   // Из ORDER_SOURCES
-    priority: String,                 // Из ORDER_PRIORITY
-    status: String,                   // Из ORDER_STATUS
+    
+    type: String,                     
+    source: String,                   
+    priority: String,                 
+    status: String,                   
 
-    // Участники заказа
+    
     customer: {
         userId: ObjectId,
         name: String,
         phone: String,
 
-        // Дублируем важные данные для быстрого доступа
-        rating: Number,               // Рейтинг клиента
-        ordersCount: Number,          // Количество заказов
-        isVip: Boolean,              // VIP клиент
+        
+        rating: Number,               
+        ordersCount: Number,          
+        isVip: Boolean,              
 
-        // Устройство клиента
+        
         device: {
             id: String,
-            type: String,             // ios, android, web
+            type: String,             
             model: String,
             appVersion: String
         }
     },
 
-    // Автомобиль
+    
     vehicle: {
         vehicleId: ObjectId,
 
-        // Дублируем основные данные
+        
         brand: String,
         model: String,
         year: Number,
         plateNumber: String,
         color: String,
 
-        // Для быстрого отображения
-        displayName: String           // "Chevrolet Nexia 2020"
+        
+        displayName: String           
     },
 
-    // Услуга
+    
     service: {
         serviceId: ObjectId,
-        code: String,                 // Из SERVICE_TYPES
-        name: String,                 // Локализованное название
+        code: String,                 
+        name: String,                 
         category: String,
 
-        // Опции услуги
+        
         options: [{
             id: String,
             name: String,
@@ -104,44 +104,44 @@ const orderSchema = {
             quantity: Number
         }],
 
-        // Описание проблемы
+        
         description: String,
 
-        // Фото/видео проблемы
+        
         media: [{
-            type: String,             // photo, video
+            type: String,             
             url: String,
             thumbnailUrl: String,
             uploadedAt: Date
         }]
     },
 
-    // Исполнитель
+    
     executor: {
-        type: String,                 // master, sto
+        type: String,                 
 
-        // Для мастера
+        
         masterId: ObjectId,
         masterName: String,
         masterPhone: String,
         masterRating: Number,
 
-        // Для СТО
+        
         stoId: ObjectId,
         stoName: String,
         stoPhone: String,
         stoRating: Number,
 
-        // Общие поля
+        
         assignedAt: Date,
         acceptedAt: Date,
         rejectedAt: Date,
         rejectionReason: String,
 
-        // Время отклика
-        responseTime: Number,         // Секунды
+        
+        responseTime: Number,         
 
-        // История назначений (если были переназначения)
+        
         history: [{
             executorId: ObjectId,
             executorType: String,
@@ -152,9 +152,9 @@ const orderSchema = {
         }]
     },
 
-    // Локации
+    
     location: {
-        // Место подачи (откуда)
+        
         pickup: {
             address: {
                 formatted: String,
@@ -169,30 +169,30 @@ const orderSchema = {
 
             coordinates: {
                 type: { type: String, default: 'Point' },
-                coordinates: [Number]  // [longitude, latitude]
+                coordinates: [Number]  
             },
 
-            // Валидация адреса
+            
             isVerified: Boolean,
-            verifiedBy: String        // geocoding, manual, gps
+            verifiedBy: String        
         },
 
-        // Место назначения (куда) - для эвакуатора
+        
         destination: {
-            address: Object,          // Аналогично pickup.address
-            coordinates: Object,      // Аналогично pickup.coordinates
+            address: Object,          
+            coordinates: Object,      
             isVerified: Boolean
         },
 
-        // Расчетные данные
+        
         route: {
-            distance: Number,         // Метры
-            duration: Number,         // Секунды
+            distance: Number,         
+            duration: Number,         
 
-            // Маршрут для отображения
-            polyline: String,         // Закодированный polyline
+            
+            polyline: String,         
 
-            // Путевые точки
+            
             waypoints: [{
                 coordinates: {
                     type: { type: String, default: 'Point' },
@@ -202,7 +202,7 @@ const orderSchema = {
             }]
         },
 
-        // Текущее местоположение мастера
+        
         tracking: {
             isActive: Boolean,
 
@@ -217,7 +217,7 @@ const orderSchema = {
                 updatedAt: Date
             },
 
-            // ETA (Estimated Time of Arrival)
+            
             eta: {
                 minutes: Number,
                 distance: Number,
@@ -226,13 +226,13 @@ const orderSchema = {
         }
     },
 
-    // Временные параметры
+    
     timing: {
-        // Для запланированных заказов
+        
         scheduledFor: Date,
-        scheduledDuration: Number,    // Минуты
+        scheduledDuration: Number,    
 
-        // Временные метки
+        
         createdAt: Date,
         searchStartedAt: Date,
         assignedAt: Date,
@@ -242,84 +242,84 @@ const orderSchema = {
         completedAt: Date,
         cancelledAt: Date,
 
-        // Длительности этапов
+        
         durations: {
-            search: Number,           // Поиск мастера (сек)
-            response: Number,         // Отклик мастера (сек)
-            arrival: Number,          // Время прибытия (сек)
-            work: Number,            // Время работы (сек)
-            total: Number            // Общее время (сек)
+            search: Number,           
+            response: Number,         
+            arrival: Number,          
+            work: Number,            
+            total: Number            
         },
 
-        // SLA
+        
         sla: {
-            searchTimeout: Number,    // Таймаут поиска
-            responseTimeout: Number,  // Таймаут ответа
-            arrivalTimeout: Number,   // Таймаут прибытия
+            searchTimeout: Number,    
+            responseTimeout: Number,  
+            arrivalTimeout: Number,   
 
-            // Нарушения SLA
+            
             violations: [{
-                type: String,         // search_timeout, late_arrival
+                type: String,         
                 timestamp: Date,
-                duration: Number      // Насколько превышен
+                duration: Number      
             }]
         }
     },
 
-    // Финансы
+    
     pricing: {
-        // Расчет стоимости
+        
         calculation: {
             basePrice: Number,
 
-            // Составляющие цены
+            
             components: [{
-                type: String,         // base, distance, time, option
+                type: String,         
                 description: String,
                 amount: Number,
                 quantity: Number,
                 unit: String
             }],
 
-            // Модификаторы
+            
             surgeMultiplier: Number,
             surgeAmount: Number,
             nightSurcharge: Number,
             weekendSurcharge: Number,
             urgencySurcharge: Number,
 
-            // Скидки
+            
             discount: {
-                type: String,         // promocode, loyalty, campaign
+                type: String,         
                 code: String,
                 amount: Number,
                 percentage: Number
             },
 
-            // Итоги
+            
             subtotal: Number,
             tax: Number,
             taxRate: Number,
             total: Number,
 
-            // Валюта
-            currency: String,         // UZS
+            
+            currency: String,         
 
-            // Когда рассчитано
+            
             calculatedAt: Date
         },
 
-        // Оплата
+        
         payment: {
-            method: String,           // Из PAYMENT_METHODS
-            status: String,           // Из PAYMENT_STATUS
+            method: String,           
+            status: String,           
 
-            // Детали платежа
+            
             details: {
-                cardMask: String,     // **** 1234
-                cardType: String,     // visa, mastercard, uzcard
+                cardMask: String,     
+                cardType: String,     
 
-                // Для разделенной оплаты
+                
                 splits: [{
                     method: String,
                     amount: Number,
@@ -327,7 +327,7 @@ const orderSchema = {
                 }]
             },
 
-            // Транзакции
+            
             transactions: [{
                 transactionId: ObjectId,
                 type: String,
@@ -336,28 +336,28 @@ const orderSchema = {
                 timestamp: Date
             }],
 
-            // Итоговые суммы
+            
             paidAmount: Number,
             refundedAmount: Number,
             dueAmount: Number
         },
 
-        // Комиссии и распределение
+        
         distribution: {
-            // Комиссия платформы
+            
             platformCommission: {
-                rate: Number,         // Процент
+                rate: Number,         
                 amount: Number
             },
 
-            // Выплата исполнителю
+            
             executorPayout: {
                 amount: Number,
-                status: String,       // pending, paid
+                status: String,       
                 paidAt: Date
             },
 
-            // Для СТО - распределение между СТО и мастером
+            
             stoShare: {
                 amount: Number,
                 rate: Number
@@ -370,32 +370,32 @@ const orderSchema = {
         }
     },
 
-    // Процесс поиска исполнителя
+    
     search: {
-        // Параметры поиска
+        
         criteria: {
             serviceType: String,
             requiredSkills: [String],
             preferredExecutorIds: [ObjectId],
             excludedExecutorIds: [ObjectId],
 
-            radius: Number,           // Начальный радиус
-            maxRadius: Number,        // Максимальный радиус
+            radius: Number,           
+            maxRadius: Number,        
 
-            // Фильтры
+            
             minRating: Number,
             maxPrice: Number,
             onlyVerified: Boolean,
             onlyWithReviews: Boolean
         },
 
-        // Процесс поиска
+        
         attempts: [{
             attemptNumber: Number,
             timestamp: Date,
             radius: Number,
 
-            // Найденные кандидаты
+            
             candidates: [{
                 executorId: ObjectId,
                 executorType: String,
@@ -403,21 +403,21 @@ const orderSchema = {
                 eta: Number,
                 rating: Number,
                 price: Number,
-                score: Number,        // Общий скор для сортировки
+                score: Number,        
 
-                // Результат
+                
                 notified: Boolean,
                 notifiedAt: Date,
                 responded: Boolean,
                 respondedAt: Date,
-                response: String,     // accepted, rejected, timeout
+                response: String,     
                 rejectionReason: String
             }],
 
-            result: String           // found, expanded, failed
+            result: String           
         }],
 
-        // Статистика поиска
+        
         stats: {
             totalCandidates: Number,
             notifiedCount: Number,
@@ -427,13 +427,13 @@ const orderSchema = {
         }
     },
 
-    // Оценки и отзывы
+    
     feedback: {
-        // Оценка от клиента
+        
         fromCustomer: {
-            rating: Number,           // 1-5
+            rating: Number,           
 
-            // Детальные оценки
+            
             categories: {
                 quality: Number,
                 speed: Number,
@@ -443,9 +443,9 @@ const orderSchema = {
             },
 
             comment: String,
-            tags: [String],          // Предустановленные теги
+            tags: [String],          
 
-            // Медиа
+            
             photos: [{
                 url: String,
                 caption: String
@@ -453,78 +453,78 @@ const orderSchema = {
 
             createdAt: Date,
 
-            // Ответ исполнителя
+            
             response: {
                 comment: String,
                 createdAt: Date
             }
         },
 
-        // Оценка от исполнителя
+        
         fromExecutor: {
             rating: Number,
             comment: String,
-            tags: [String],          // adequate, polite, difficult
+            tags: [String],          
             createdAt: Date
         },
 
-        // Жалобы
+        
         complaints: [{
-            from: String,            // customer, executor
+            from: String,            
             type: String,
             description: String,
-            status: String,          // open, investigating, resolved
+            status: String,          
             createdAt: Date,
             resolvedAt: Date,
             resolution: String
         }]
     },
 
-    // Коммуникации
+    
     communication: {
-        // Чат
+        
         chatEnabled: Boolean,
         chatSessionId: String,
         messagesCount: Number,
         lastMessageAt: Date,
 
-        // Звонки
+        
         calls: [{
-            from: String,            // customer, executor, support
+            from: String,            
             to: String,
-            duration: Number,        // Секунды
-            status: String,          // completed, missed, failed
+            duration: Number,        
+            status: String,          
             timestamp: Date
         }],
 
-        // Автоматические сообщения
+        
         autoMessages: [{
-            type: String,            // eta_update, status_change
+            type: String,            
             template: String,
             sentAt: Date,
             deliveryStatus: String
         }]
     },
 
-    // Промо и маркетинг
+    
     marketing: {
-        // Промокод
+        
         promocode: {
             code: String,
             campaignId: ObjectId,
             discount: Number,
-            discountType: String     // fixed, percentage
+            discountType: String     
         },
 
-        // Источник привлечения
+        
         attribution: {
-            source: String,          // organic, paid, referral
-            medium: String,          // google, facebook, friend
+            source: String,          
+            medium: String,          
             campaign: String,
             referrerId: ObjectId
         },
 
-        // A/B тестирование
+        
         experiments: [{
             name: String,
             variant: String,
@@ -532,42 +532,42 @@ const orderSchema = {
         }]
     },
 
-    // Повторяющиеся заказы
+    
     recurring: {
         isRecurring: Boolean,
 
-        // Расписание
+        
         schedule: {
-            frequency: String,       // daily, weekly, monthly
-            interval: Number,        // Каждые N периодов
+            frequency: String,       
+            interval: Number,        
 
-            // Дни недели (для weekly)
-            daysOfWeek: [Number],    // 0-6
+            
+            daysOfWeek: [Number],    
 
-            // День месяца (для monthly)
+            
             dayOfMonth: Number,
 
-            // Время
-            timeOfDay: String,       // "09:00"
+            
+            timeOfDay: String,       
 
-            // Период действия
+            
             startDate: Date,
             endDate: Date,
 
-            // Следующее выполнение
+            
             nextRunAt: Date
         },
 
-        // История выполнений
+        
         executions: [{
             orderId: ObjectId,
             scheduledFor: Date,
             executedAt: Date,
             status: String,
-            reason: String           // Причина пропуска
+            reason: String           
         }],
 
-        // Настройки
+        
         settings: {
             autoConfirm: Boolean,
             preferredExecutorId: ObjectId,
@@ -576,29 +576,29 @@ const orderSchema = {
         }
     },
 
-    // Метаданные
+    
     metadata: {
-        // Версионирование
-        version: Number,             // Версия схемы
+        
+        version: Number,             
         apiVersion: String,
 
-        // Внутренние флаги
+        
         flags: {
             isTest: Boolean,
             isPriority: Boolean,
-            isCompensation: Boolean, // Компенсационный заказ
+            isCompensation: Boolean, 
             requiresReview: Boolean,
             wasEdited: Boolean,
             isDisputed: Boolean
         },
 
-        // Теги для группировки
+        
         tags: [String],
 
-        // Кастомные поля
+        
         customFields: Object,
 
-        // Служебная информация
+        
         notes: [{
             author: ObjectId,
             authorRole: String,
@@ -607,63 +607,63 @@ const orderSchema = {
         }]
     },
 
-    // Аудит
+    
     audit: {
         createdBy: ObjectId,
         createdByRole: String,
 
-        // Изменения
+        
         lastModified: {
             by: ObjectId,
             byRole: String,
             at: Date,
-            fields: [String]         // Измененные поля
+            fields: [String]         
         },
 
-        // IP адреса
+        
         ip: {
             created: String,
             lastModified: String
         }
     },
 
-    // Временные метки
+    
     createdAt: Date,
     updatedAt: Date,
-    deletedAt: Date                  // Для soft delete
+    deletedAt: Date                  
 };
 
-// Класс для работы с заказами
+
 class OrderModel {
     constructor(db) {
         this.collection = db.collection('orders');
-        this.historyModel = null; // Инжектим позже
+        this.historyModel = null; 
         this.setupIndexes();
     }
 
-    // Установка связи с моделью истории
+    
     setHistoryModel(historyModel) {
         this.historyModel = historyModel;
     }
 
-    // Создание индексов
+    
     async setupIndexes() {
         try {
-            // Уникальные индексы
+            
             await this.collection.createIndex({ orderNumber: 1 }, { unique: true });
 
-            // Основные индексы для поиска
+            
             await this.collection.createIndex({ status: 1, createdAt: -1 });
             await this.collection.createIndex({ 'customer.userId': 1, createdAt: -1 });
             await this.collection.createIndex({ 'executor.masterId': 1, status: 1 });
             await this.collection.createIndex({ 'executor.stoId': 1, status: 1 });
 
-            // Геопространственные индексы
+            
             await this.collection.createIndex({ 'location.pickup.coordinates': '2dsphere' });
             await this.collection.createIndex({ 'location.destination.coordinates': '2dsphere' });
             await this.collection.createIndex({ 'location.tracking.currentLocation.coordinates': '2dsphere' });
 
-            // Составные индексы для фильтрации
+            
             await this.collection.createIndex({
                 status: 1,
                 'service.code': 1,
@@ -676,25 +676,25 @@ class OrderModel {
                 createdAt: -1
             });
 
-            // Индексы для scheduled заказов
+            
             await this.collection.createIndex({
                 type: 1,
                 'timing.scheduledFor': 1,
                 status: 1
             });
 
-            // Индексы для recurring заказов
+            
             await this.collection.createIndex({
                 'recurring.isRecurring': 1,
                 'recurring.schedule.nextRunAt': 1
             });
 
-            // Индексы для аналитики
+            
             await this.collection.createIndex({ createdAt: -1 });
             await this.collection.createIndex({ 'timing.completedAt': -1 });
             await this.collection.createIndex({ 'pricing.calculation.total': -1 });
 
-            // Текстовый поиск
+            
             await this.collection.createIndex({
                 orderNumber: 'text',
                 'customer.name': 'text',
@@ -703,10 +703,10 @@ class OrderModel {
                 'location.pickup.address.formatted': 'text'
             });
 
-            // TTL индекс для soft delete
+            
             await this.collection.createIndex(
                 { deletedAt: 1 },
-                { expireAfterSeconds: 30 * 24 * 60 * 60 } // 30 дней
+                { expireAfterSeconds: 30 * 24 * 60 * 60 } 
             );
 
         } catch (error) {
@@ -714,11 +714,11 @@ class OrderModel {
         }
     }
 
-    // Создание нового заказа
+    
     async create(orderData) {
         const now = new Date();
 
-        // Генерация номера заказа
+        
         const orderNumber = await this.generateOrderNumber();
 
         const order = {
@@ -726,7 +726,7 @@ class OrderModel {
             orderNumber,
             ...orderData,
 
-            // Defaults
+            
             type: orderData.type || ORDER_TYPES.IMMEDIATE,
             source: orderData.source || ORDER_SOURCES.MOBILE_APP,
             priority: orderData.priority || ORDER_PRIORITY.NORMAL,
@@ -801,7 +801,7 @@ class OrderModel {
         const result = await this.collection.insertOne(order);
         order._id = result.insertedId;
 
-        // Записываем в историю
+        
         if (this.historyModel) {
             await this.historyModel.create({
                 orderId: order._id,
@@ -823,7 +823,7 @@ class OrderModel {
         return order;
     }
 
-    // Поиск заказа по ID
+    
     async findById(id) {
         return await this.collection.findOne({
             _id: new ObjectId(id),
@@ -831,7 +831,7 @@ class OrderModel {
         });
     }
 
-    // Поиск заказа по номеру
+    
     async findByNumber(orderNumber) {
         return await this.collection.findOne({
             orderNumber,
@@ -839,7 +839,7 @@ class OrderModel {
         });
     }
 
-    // Поиск заказов пользователя
+    
     async findByCustomerId(customerId, options = {}) {
         const {
             statuses = null,
@@ -866,7 +866,7 @@ class OrderModel {
             .toArray();
     }
 
-    // Поиск заказов исполнителя
+    
     async findByExecutorId(executorId, executorType = 'master', options = {}) {
         const {
             statuses = null,
@@ -880,19 +880,19 @@ class OrderModel {
             deletedAt: { $exists: false }
         };
 
-        // Фильтр по исполнителю
+        
         if (executorType === 'master') {
             query['executor.masterId'] = new ObjectId(executorId);
         } else {
             query['executor.stoId'] = new ObjectId(executorId);
         }
 
-        // Фильтр по статусам
+        
         if (statuses && statuses.length > 0) {
             query.status = { $in: statuses };
         }
 
-        // Фильтр по датам
+        
         if (dateFrom || dateTo) {
             query.createdAt = {};
             if (dateFrom) query.createdAt.$gte = dateFrom;
@@ -907,7 +907,7 @@ class OrderModel {
             .toArray();
     }
 
-    // Поиск активных заказов
+    
     async findActive(filters = {}) {
         const query = {
             status: {
@@ -931,7 +931,7 @@ class OrderModel {
             .toArray();
     }
 
-    // Поиск заказов для назначения
+    
     async findOrdersForAssignment(criteria = {}) {
         const {
             serviceTypes = [],
@@ -967,14 +967,14 @@ class OrderModel {
             .toArray();
     }
 
-    // Обновление статуса заказа
+    
     async updateStatus(orderId, newStatus, details = {}) {
         const order = await this.findById(orderId);
         if (!order) {
             throw new Error('Order not found');
         }
 
-        // Проверка валидности перехода
+        
         if (!canTransition(order.status, newStatus)) {
             throw new Error(`Invalid status transition from ${order.status} to ${newStatus}`);
         }
@@ -985,7 +985,7 @@ class OrderModel {
             updatedAt: now
         };
 
-        // Обновляем временные метки
+        
         const timestampMap = {
             [ORDER_STATUS.SEARCHING]: 'searchStartedAt',
             [ORDER_STATUS.ASSIGNED]: 'assignedAt',
@@ -1000,7 +1000,7 @@ class OrderModel {
             updateData[`timing.${timestampMap[newStatus]}`] = now;
         }
 
-        // Расчет длительностей
+        
         if (order.status === ORDER_STATUS.SEARCHING && newStatus === ORDER_STATUS.ASSIGNED) {
             updateData['timing.durations.search'] =
                 (now - order.timing.searchStartedAt) / 1000;
@@ -1011,7 +1011,7 @@ class OrderModel {
                 (now - order.timing.assignedAt) / 1000;
         }
 
-        // Дополнительные данные в зависимости от статуса
+        
         if (newStatus === ORDER_STATUS.CANCELLED && details.reason) {
             updateData['cancellation'] = {
                 reason: details.reason,
@@ -1027,7 +1027,7 @@ class OrderModel {
             { returnDocument: 'after' }
         );
 
-        // Записываем в историю
+        
         if (this.historyModel) {
             await this.historyModel.create({
                 orderId: result._id,
@@ -1049,7 +1049,7 @@ class OrderModel {
         return result;
     }
 
-    // Назначение исполнителя
+    
     async assignExecutor(orderId, executorData) {
         const now = new Date();
 
@@ -1089,7 +1089,7 @@ class OrderModel {
             { returnDocument: 'after' }
         );
 
-        // Записываем в историю
+        
         if (this.historyModel) {
             await this.historyModel.create({
                 orderId: result._id,
@@ -1117,7 +1117,7 @@ class OrderModel {
         return result;
     }
 
-    // Обновление цены заказа
+    
     async updatePricing(orderId, pricingData) {
         const updateData = {
             'pricing.calculation': {
@@ -1133,7 +1133,7 @@ class OrderModel {
             { returnDocument: 'after' }
         );
 
-        // Записываем в историю
+        
         if (this.historyModel) {
             await this.historyModel.create({
                 orderId: result._id,
@@ -1152,7 +1152,7 @@ class OrderModel {
         return result;
     }
 
-    // Обновление локации трекинга
+    
     async updateTracking(orderId, trackingData) {
         const updateData = {
             'location.tracking': {
@@ -1172,7 +1172,7 @@ class OrderModel {
             updatedAt: new Date()
         };
 
-        // Добавляем точку в маршрут
+        
         const waypoint = {
             coordinates: {
                 type: 'Point',
@@ -1188,7 +1188,7 @@ class OrderModel {
                 $push: {
                     'location.route.waypoints': {
                         $each: [waypoint],
-                        $slice: -100 // Храним последние 100 точек
+                        $slice: -100 
                     }
                 }
             },
@@ -1196,7 +1196,7 @@ class OrderModel {
         );
     }
 
-    // Добавление поисковой попытки
+    
     async addSearchAttempt(orderId, attemptData) {
         const attempt = {
             attemptNumber: attemptData.attemptNumber,
@@ -1222,7 +1222,7 @@ class OrderModel {
         );
     }
 
-    // Добавление отзыва
+    
     async addFeedback(orderId, feedbackData) {
         const { from, rating, comment, categories, tags } = feedbackData;
 
@@ -1248,7 +1248,7 @@ class OrderModel {
             { returnDocument: 'after' }
         );
 
-        // Записываем в историю
+        
         if (this.historyModel) {
             await this.historyModel.create({
                 orderId: result._id,
@@ -1271,11 +1271,11 @@ class OrderModel {
         return result;
     }
 
-    // Расчет статистики заказов
+    
     async calculateStats(filters = {}) {
         const pipeline = [];
 
-        // Фильтры
+        
         const match = {
             deletedAt: { $exists: false }
         };
@@ -1291,7 +1291,7 @@ class OrderModel {
 
         pipeline.push({ $match: match });
 
-        // Группировка
+        
         pipeline.push({
             $group: {
                 _id: null,
@@ -1335,12 +1335,12 @@ class OrderModel {
         };
     }
 
-    // Поиск заказов с истекшими таймаутами
+    
     async findExpiredOrders() {
         const now = new Date();
         const expiredOrders = [];
 
-        // Проверяем заказы в статусе SEARCHING
+        
         const searchingOrders = await this.collection.find({
             status: ORDER_STATUS.SEARCHING,
             deletedAt: { $exists: false }
@@ -1356,7 +1356,7 @@ class OrderModel {
             }
         }
 
-        // Проверяем заказы в статусе ASSIGNED
+        
         const assignedOrders = await this.collection.find({
             status: ORDER_STATUS.ASSIGNED,
             deletedAt: { $exists: false }
@@ -1375,14 +1375,14 @@ class OrderModel {
         return expiredOrders;
     }
 
-    // Генерация номера заказа
+    
     async generateOrderNumber() {
         const date = new Date();
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
 
-        // Получаем последний номер за сегодня
+        
         const lastOrder = await this.collection.findOne(
             {
                 orderNumber: {
@@ -1401,7 +1401,7 @@ class OrderModel {
         return `Y24-${year}${month}${day}-${String(sequence).padStart(4, '0')}`;
     }
 
-    // Мягкое удаление
+    
     async softDelete(orderId) {
         return await this.collection.updateOne(
             { _id: new ObjectId(orderId) },
@@ -1415,7 +1415,7 @@ class OrderModel {
     }
 }
 
-// Экспортируем
+
 module.exports = {
     OrderModel,
     ORDER_TYPES,

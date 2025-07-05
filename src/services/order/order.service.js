@@ -1,4 +1,4 @@
-// src/services/order/order.service.js
+
 
 'use strict';
 
@@ -33,10 +33,7 @@ const { AppError, BusinessError, ValidationError } = require('../../utils/errors
 const { EVENT_TYPES } = require('../../queues/publishers/event.publisher');
 const { HISTORY_EVENT_TYPES } = require('../../models/order-history.model');
 
-/**
- * Основной сервис для управления заказами
- * Координирует весь жизненный цикл заказа от создания до завершения
- */
+
 class OrderService {
     constructor(
         orderModel,
@@ -58,7 +55,7 @@ class OrderService {
         redis,
         logger
     ) {
-        // Модели
+        
         this.orderModel = orderModel;
         this.userModel = userModel;
         this.masterModel = masterModel;
@@ -66,7 +63,7 @@ class OrderService {
         this.serviceModel = serviceModel;
         this.orderHistoryModel = orderHistoryModel;
 
-        // Сервисы
+        
         this.matchingService = matchingService;
         this.pricingService = pricingService;
         this.paymentService = paymentService;
@@ -76,17 +73,17 @@ class OrderService {
         this.surgeService = surgeService;
         this.cache = cacheService;
 
-        // Очереди и события
+        
         this.eventPublisher = eventPublisher;
         this.orderPublisher = orderPublisher;
 
-        // Инфраструктура
+        
         this.redis = redis;
         this.logger = logger;
 
-        // Конфигурация
+        
         this.config = {
-            // Лимиты
+            
             limits: {
                 maxActiveOrdersPerClient: 3,
                 maxDailyOrdersPerClient: 10,
@@ -94,41 +91,41 @@ class OrderService {
                 maxReassignments: 3
             },
 
-            // Таймауты
+            
             timeouts: {
                 ...STATUS_TIMEOUTS,
-                searchExpansionInterval: 60000, // 1 минута между расширениями
-                masterNotificationTTL: 30000    // 30 секунд на ответ мастера
+                searchExpansionInterval: 60000, 
+                masterNotificationTTL: 30000    
             },
 
-            // Настройки поиска
+            
             search: {
-                initialRadius: 5000,            // 5 км
-                maxRadius: 30000,               // 30 км
-                radiusExpansionStep: 5000,      // 5 км
+                initialRadius: 5000,            
+                maxRadius: 30000,               
+                radiusExpansionStep: 5000,      
                 minMastersToNotify: 1,
                 maxMastersToNotify: 10,
                 prioritizeFavorites: true
             },
 
-            // Настройки отмены
+            
             cancellation: {
-                freeMinutes: 5,                 // Бесплатная отмена в первые 5 минут
-                penaltyPercentage: 10,          // 10% штраф за позднюю отмену
-                maxPenalty: 50000               // Максимальный штраф 50k сум
+                freeMinutes: 5,                 
+                penaltyPercentage: 10,          
+                maxPenalty: 50000               
             },
 
-            // Кэширование
+            
             cache: {
-                orderTTL: 300,                  // 5 минут
-                searchResultsTTL: 60            // 1 минута
+                orderTTL: 300,                  
+                searchResultsTTL: 60            
             }
         };
 
-        // Инициализация обработчиков статусов
+        
         this.statusHandlers = this.initializeStatusHandlers();
 
-        // Статистика
+        
         this.stats = {
             created: 0,
             completed: 0,
@@ -138,12 +135,10 @@ class OrderService {
         };
     }
 
-    /**
-     * Создание нового заказа
-     */
+    
     async createOrder(orderData, userId) {
         try {
-            // Начинаем транзакцию Redis для атомарности
+            
             const lockKey = `order:create:${userId}`;
             const lock = await this.redis.set(lockKey, '1', 'EX', 10, 'NX');
 
@@ -156,28 +151,28 @@ class OrderService {
             }
 
             try {
-                // Валидация пользователя
+                
                 const user = await this.validateUser(userId);
 
-                // Проверка лимитов
+                
                 await this.checkUserOrderLimits(userId);
 
-                // Валидация данных заказа
+                
                 const validatedData = await this.validateOrderData(orderData, user);
 
-                // Валидация автомобиля
+                
                 const vehicle = await this.validateVehicle(
                     validatedData.vehicleId,
                     userId
                 );
 
-                // Валидация услуги
+                
                 const service = await this.validateService(
                     validatedData.serviceType,
                     validatedData.serviceOptions
                 );
 
-                // Валидация локации
+                
                 const locationValidation = await this.geoService.validation.validateLocation(
                     validatedData.location,
                     { serviceType: validatedData.serviceType }
@@ -190,7 +185,7 @@ class OrderService {
                     );
                 }
 
-                // Расчет стоимости
+                
                 const pricing = await this.calculateOrderPricing({
                     serviceType: validatedData.serviceType,
                     serviceOptions: validatedData.serviceOptions,
@@ -200,7 +195,7 @@ class OrderService {
                     scheduledFor: validatedData.scheduledFor
                 });
 
-                // Создаем заказ
+                
                 const order = await this.orderModel.create({
                     type: validatedData.scheduledFor ? 'scheduled' : 'immediate',
                     source: validatedData.source || 'mobile_app',
@@ -288,7 +283,7 @@ class OrderService {
                     }
                 });
 
-                // Записываем в историю
+                
                 await this.recordHistory(order._id, HISTORY_EVENT_TYPES.ORDER_CREATED, {
                     actor: {
                         type: 'user',
@@ -297,7 +292,7 @@ class OrderService {
                     }
                 });
 
-                // Публикуем событие
+                
                 await this.eventPublisher.publish(EVENT_TYPES.ORDER_CREATED, {
                     orderId: order._id,
                     userId,
@@ -306,7 +301,7 @@ class OrderService {
                     amount: pricing.total
                 });
 
-                // Отправляем уведомление
+                
                 await this.notificationService.create({
                     type: 'order_created',
                     recipientId: userId,
@@ -316,10 +311,10 @@ class OrderService {
                     }
                 });
 
-                // Обновляем статистику
+                
                 this.stats.created++;
 
-                // Инициируем поиск мастера для срочных заказов
+                
                 if (!validatedData.scheduledFor) {
                     setImmediate(() => {
                         this.startMasterSearch(order._id).catch(err => {
@@ -331,7 +326,7 @@ class OrderService {
                     });
                 }
 
-                // Кэшируем заказ
+                
                 await this.cache.set(
                     `order:${order._id}`,
                     order,
@@ -341,7 +336,7 @@ class OrderService {
                 return order;
 
             } finally {
-                // Освобождаем блокировку
+                
                 await this.redis.del(lockKey);
             }
 
@@ -356,9 +351,7 @@ class OrderService {
         }
     }
 
-    /**
-     * Начало поиска мастера
-     */
+    
     async startMasterSearch(orderId) {
         try {
             const order = await this.getOrder(orderId);
@@ -371,19 +364,19 @@ class OrderService {
                 );
             }
 
-            // Обновляем статус
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.SEARCHING, {
                 actorType: 'system'
             });
 
-            // Запускаем процесс поиска
+            
             await this.orderPublisher.publishSearchRequest({
                 orderId,
                 attempt: 1,
                 radius: order.search.criteria.radius
             });
 
-            // Устанавливаем таймер на истечение поиска
+            
             const timeout = getStatusTimeout(ORDER_STATUS.SEARCHING);
             setTimeout(() => {
                 this.handleSearchTimeout(orderId).catch(err => {
@@ -404,20 +397,18 @@ class OrderService {
         }
     }
 
-    /**
-     * Обработка результатов поиска мастеров
-     */
+    
     async processMasterSearchResults(orderId, searchResults) {
         try {
             const order = await this.getOrder(orderId);
 
             if (order.status !== ORDER_STATUS.SEARCHING) {
-                return; // Заказ уже не в поиске
+                return; 
             }
 
             const { attempt, candidates } = searchResults;
 
-            // Записываем попытку поиска
+            
             await this.orderModel.addSearchAttempt(orderId, {
                 attemptNumber: attempt,
                 radius: searchResults.radius,
@@ -435,12 +426,12 @@ class OrderService {
             });
 
             if (candidates.length === 0) {
-                // Нет кандидатов, расширяем поиск
+                
                 await this.expandSearch(orderId, attempt);
                 return;
             }
 
-            // Фильтруем и сортируем кандидатов
+            
             const eligibleCandidates = await this.filterCandidates(order, candidates);
 
             if (eligibleCandidates.length === 0) {
@@ -448,13 +439,13 @@ class OrderService {
                 return;
             }
 
-            // Уведомляем мастеров
+            
             const notificationResults = await this.notifyMasters(
                 order,
                 eligibleCandidates
             );
 
-            // Обновляем статистику поиска
+            
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -465,7 +456,7 @@ class OrderService {
                 }
             );
 
-            // Если никто не был уведомлен, расширяем поиск
+            
             if (notificationResults.notified === 0) {
                 await this.expandSearch(orderId, attempt);
             }
@@ -481,14 +472,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Назначение мастера на заказ
-     */
+    
     async assignMaster(orderId, masterId, options = {}) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Валидация статуса
+            
             if (!canTransition(order.status, ORDER_STATUS.ASSIGNED)) {
                 throw new BusinessError(
                     `Cannot assign master in status ${order.status}`,
@@ -497,7 +486,7 @@ class OrderService {
                 );
             }
 
-            // Валидация мастера
+            
             const master = await this.masterModel.findById(masterId);
             if (!master || master.status !== 'active') {
                 throw new BusinessError(
@@ -507,7 +496,7 @@ class OrderService {
                 );
             }
 
-            // Проверка доступности мастера
+            
             const availability = await this.masterModel.checkAvailability(masterId);
             if (!availability.available) {
                 throw new BusinessError(
@@ -517,13 +506,13 @@ class OrderService {
                 );
             }
 
-            // Расчет ETA
+            
             const route = await this.geoService.calculateRoute(
                 master.currentState.location.coordinates.coordinates,
                 order.location.pickup.coordinates.coordinates
             );
 
-            // Назначаем мастера
+            
             const assignmentData = {
                 type: 'master',
                 masterId: master._id,
@@ -537,13 +526,13 @@ class OrderService {
 
             await this.orderModel.assignExecutor(orderId, assignmentData);
 
-            // Обновляем статус заказа
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.ASSIGNED, {
                 actorType: options.actorType || 'system',
                 actorId: options.actorId
             });
 
-            // Уведомляем мастера о назначении
+            
             await this.notificationService.create({
                 type: 'order_assigned',
                 recipientId: master.userId,
@@ -557,7 +546,7 @@ class OrderService {
                 }
             });
 
-            // Уведомляем клиента
+            
             await this.notificationService.create({
                 type: 'master_assigned',
                 recipientId: order.customer.userId,
@@ -572,14 +561,14 @@ class OrderService {
                 }
             });
 
-            // Публикуем событие
+            
             await this.eventPublisher.publish(EVENT_TYPES.ORDER_ASSIGNED, {
                 orderId,
                 masterId,
                 eta: route.eta.minutes
             });
 
-            // Запускаем таймер на принятие заказа
+            
             const timeout = getStatusTimeout(ORDER_STATUS.ASSIGNED);
             setTimeout(() => {
                 this.handleAssignmentTimeout(orderId, masterId).catch(err => {
@@ -604,14 +593,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Принятие заказа мастером
-     */
+    
     async acceptOrder(orderId, masterId) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Валидация
+            
             if (order.status !== ORDER_STATUS.ASSIGNED) {
                 throw new BusinessError(
                     'Order is not in ASSIGNED status',
@@ -628,7 +615,7 @@ class OrderService {
                 );
             }
 
-            // Обновляем данные исполнителя
+            
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -640,20 +627,20 @@ class OrderService {
                 }
             );
 
-            // Обновляем статус
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.ACCEPTED, {
                 actorType: 'master',
                 actorId: masterId
             });
 
-            // Назначаем заказ мастеру в его модели
+            
             await this.masterModel.assignOrder(masterId, {
                 orderId,
                 estimatedDuration: order.timing.scheduledDuration,
                 scheduledTime: order.timing.scheduledFor
             });
 
-            // Уведомляем клиента
+            
             await this.notificationService.create({
                 type: 'order_accepted',
                 recipientId: order.customer.userId,
@@ -664,13 +651,13 @@ class OrderService {
                 }
             });
 
-            // Публикуем событие
+            
             await this.eventPublisher.publish(EVENT_TYPES.ORDER_ACCEPTED, {
                 orderId,
                 masterId
             });
 
-            // Запускаем таймер на начало движения
+            
             const timeout = getStatusTimeout(ORDER_STATUS.ACCEPTED);
             setTimeout(() => {
                 this.checkMasterMovement(orderId, masterId).catch(err => {
@@ -695,14 +682,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Отклонение заказа мастером
-     */
+    
     async rejectOrder(orderId, masterId, reason) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Валидация
+            
             if (order.status !== ORDER_STATUS.ASSIGNED) {
                 throw new BusinessError(
                     'Order is not in ASSIGNED status',
@@ -719,7 +704,7 @@ class OrderService {
                 );
             }
 
-            // Обновляем данные исполнителя
+            
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -733,19 +718,19 @@ class OrderService {
                 }
             );
 
-            // Обновляем статус
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.REJECTED, {
                 actorType: 'master',
                 actorId: masterId,
                 reason
             });
 
-            // Возвращаем к поиску
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.SEARCHING, {
                 actorType: 'system'
             });
 
-            // Записываем в историю мастера
+            
             await this.recordHistory(orderId, HISTORY_EVENT_TYPES.MASTER_REJECTED, {
                 actor: {
                     type: 'master',
@@ -754,7 +739,7 @@ class OrderService {
                 details: { reason }
             });
 
-            // Продолжаем поиск
+            
             await this.orderPublisher.publishSearchRequest({
                 orderId,
                 attempt: order.search.attempts.length + 1,
@@ -776,14 +761,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Начало движения мастера
-     */
+    
     async startMasterMovement(orderId, masterId) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Валидация
+            
             if (order.status !== ORDER_STATUS.ACCEPTED) {
                 throw new BusinessError(
                     'Order is not in ACCEPTED status',
@@ -792,20 +775,20 @@ class OrderService {
                 );
             }
 
-            // Обновляем статус
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.EN_ROUTE, {
                 actorType: 'master',
                 actorId: masterId
             });
 
-            // Начинаем трекинг
+            
             await this.geoService.startOrderTracking(orderId, {
-                updateInterval: 10000, // 10 секунд
+                updateInterval: 10000, 
                 includeETA: true,
                 includeRoute: true
             });
 
-            // Уведомляем клиента
+            
             await this.notificationService.create({
                 type: 'master_en_route',
                 recipientId: order.customer.userId,
@@ -831,14 +814,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Прибытие мастера
-     */
+    
     async confirmMasterArrival(orderId, masterId, location) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Валидация
+            
             if (order.status !== ORDER_STATUS.EN_ROUTE) {
                 throw new BusinessError(
                     'Order is not in EN_ROUTE status',
@@ -847,13 +828,13 @@ class OrderService {
                 );
             }
 
-            // Проверяем расстояние до клиента
+            
             const distance = await this.geoService.calculateDistance(
                 location,
                 order.location.pickup.coordinates.coordinates
             );
 
-            if (distance > 500) { // 500 метров
+            if (distance > 500) { 
                 throw new BusinessError(
                     'Master is too far from pickup location',
                     'MASTER_TOO_FAR',
@@ -862,16 +843,16 @@ class OrderService {
                 );
             }
 
-            // Обновляем статус
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.ARRIVED, {
                 actorType: 'master',
                 actorId: masterId
             });
 
-            // Останавливаем трекинг
+            
             await this.geoService.stopOrderTracking(orderId);
 
-            // Уведомляем клиента
+            
             await this.notificationService.create({
                 type: 'master_arrived',
                 recipientId: order.customer.userId,
@@ -896,14 +877,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Начало работы
-     */
+    
     async startWork(orderId, masterId) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Валидация
+            
             if (order.status !== ORDER_STATUS.ARRIVED) {
                 throw new BusinessError(
                     'Order is not in ARRIVED status',
@@ -912,13 +891,13 @@ class OrderService {
                 );
             }
 
-            // Обновляем статус
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.IN_PROGRESS, {
                 actorType: 'master',
                 actorId: masterId
             });
 
-            // Записываем время начала работы
+            
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -928,7 +907,7 @@ class OrderService {
                 }
             );
 
-            // Уведомляем клиента
+            
             await this.notificationService.create({
                 type: 'work_started',
                 recipientId: order.customer.userId,
@@ -951,14 +930,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Завершение заказа
-     */
+    
     async completeOrder(orderId, masterId, completionData) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Валидация
+            
             if (order.status !== ORDER_STATUS.IN_PROGRESS) {
                 throw new BusinessError(
                     'Order is not in IN_PROGRESS status',
@@ -967,17 +944,17 @@ class OrderService {
                 );
             }
 
-            // Валидация данных завершения
+            
             const { finalPrice, workPerformed, photos } = completionData;
 
             if (!workPerformed || workPerformed.length === 0) {
                 throw new ValidationError('Work performed details are required');
             }
 
-            // Рассчитываем длительность работы
+            
             const workDuration = Date.now() - new Date(order.timing.startedAt).getTime();
 
-            // Обновляем данные заказа
+            
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -997,13 +974,13 @@ class OrderService {
                 }
             );
 
-            // Обновляем статус
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.COMPLETED, {
                 actorType: 'master',
                 actorId: masterId
             });
 
-            // Обновляем статистику мастера
+            
             await this.masterModel.updateOrderStatistics(masterId, {
                 status: 'completed',
                 totalAmount: finalPrice || order.pricing.calculation.total,
@@ -1014,10 +991,10 @@ class OrderService {
                 customerId: order.customer.userId
             });
 
-            // Завершаем заказ у мастера
+            
             await this.masterModel.completeOrder(masterId, orderId);
 
-            // Обрабатываем платеж если наличный
+            
             if (order.pricing.payment.method === 'cash') {
                 await this.paymentService.confirmCashPayment(
                     order.pricing.payment.paymentId,
@@ -1029,14 +1006,14 @@ class OrderService {
                 );
             }
 
-            // Начисляем комиссию
+            
             await this.commissionService.processOrderCommission(
                 orderId,
                 finalPrice || order.pricing.calculation.total,
                 masterId
             );
 
-            // Уведомляем клиента
+            
             await this.notificationService.create({
                 type: 'order_completed',
                 recipientId: order.customer.userId,
@@ -1048,14 +1025,14 @@ class OrderService {
                 }
             });
 
-            // Публикуем событие
+            
             await this.eventPublisher.publish(EVENT_TYPES.ORDER_COMPLETED, {
                 orderId,
                 masterId,
                 amount: finalPrice || order.pricing.calculation.total
             });
 
-            // Обновляем статистику
+            
             this.stats.completed++;
 
             return await this.getOrder(orderId);
@@ -1072,14 +1049,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Отмена заказа
-     */
+    
     async cancelOrder(orderId, cancelledBy, reason, role) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Проверка возможности отмены
+            
             if (!isCancellable(order.status)) {
                 throw new BusinessError(
                     `Cannot cancel order in status ${order.status}`,
@@ -1088,13 +1063,13 @@ class OrderService {
                 );
             }
 
-            // Валидация причины
+            
             const validReason = this.validateCancellationReason(reason, role);
 
-            // Расчет штрафа за отмену
+            
             const penalty = await this.calculateCancellationPenalty(order, role);
 
-            // Обновляем данные отмены
+            
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -1110,21 +1085,21 @@ class OrderService {
                 }
             );
 
-            // Обновляем статус
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.CANCELLED, {
                 actorType: role === USER_ROLES.CLIENT ? 'user' : 'master',
                 actorId: cancelledBy,
                 reason: validReason
             });
 
-            // Освобождаем мастера если был назначен
+            
             if (hasMaster(order.status) && order.executor.masterId) {
                 await this.masterModel.completeOrder(
                     order.executor.masterId,
                     orderId
                 );
 
-                // Уведомляем мастера
+                
                 await this.notificationService.create({
                     type: 'order_cancelled',
                     recipientId: order.executor.masterId,
@@ -1136,12 +1111,12 @@ class OrderService {
                 });
             }
 
-            // Останавливаем трекинг если активен
+            
             if (order.location.tracking?.isActive) {
                 await this.geoService.stopOrderTracking(orderId);
             }
 
-            // Обрабатываем возврат платежа если нужно
+            
             if (order.pricing.payment.status === 'completed' && penalty < order.pricing.calculation.total) {
                 const refundAmount = order.pricing.calculation.total - penalty;
                 await this.paymentService.createRefund(
@@ -1153,12 +1128,12 @@ class OrderService {
                 );
             }
 
-            // Применяем штраф если есть
+            
             if (penalty > 0 && role === USER_ROLES.CLIENT) {
                 await this.applyPenalty(order.customer.userId, penalty, orderId);
             }
 
-            // Уведомляем участников
+            
             const notificationRecipient = role === USER_ROLES.CLIENT ?
                 order.executor?.masterId : order.customer.userId;
 
@@ -1175,7 +1150,7 @@ class OrderService {
                 });
             }
 
-            // Публикуем событие
+            
             await this.eventPublisher.publish(EVENT_TYPES.ORDER_CANCELLED, {
                 orderId,
                 reason: validReason,
@@ -1184,7 +1159,7 @@ class OrderService {
                 penalty
             });
 
-            // Обновляем статистику
+            
             this.stats.cancelled++;
 
             return await this.getOrder(orderId);
@@ -1202,11 +1177,9 @@ class OrderService {
         }
     }
 
-    /**
-     * Получение заказа
-     */
+    
     async getOrder(orderId) {
-        // Проверяем кэш
+        
         const cached = await this.cache.get(`order:${orderId}`);
         if (cached) {
             return cached;
@@ -1221,7 +1194,7 @@ class OrderService {
             );
         }
 
-        // Кэшируем
+        
         await this.cache.set(
             `order:${orderId}`,
             order,
@@ -1231,9 +1204,7 @@ class OrderService {
         return order;
     }
 
-    /**
-     * Получение списка заказов
-     */
+    
     async getOrders(filters = {}, options = {}) {
         const {
             userId,
@@ -1301,14 +1272,12 @@ class OrderService {
         };
     }
 
-    /**
-     * Добавление оценки к заказу
-     */
+    
     async rateOrder(orderId, userId, rating, role = USER_ROLES.CLIENT) {
         try {
             const order = await this.getOrder(orderId);
 
-            // Валидация
+            
             if (order.status !== ORDER_STATUS.COMPLETED) {
                 throw new BusinessError(
                     'Can only rate completed orders',
@@ -1317,7 +1286,7 @@ class OrderService {
                 );
             }
 
-            // Проверка прав
+            
             if (role === USER_ROLES.CLIENT && order.customer.userId.toString() !== userId.toString()) {
                 throw new BusinessError(
                     'Not authorized to rate this order',
@@ -1334,7 +1303,7 @@ class OrderService {
                 );
             }
 
-            // Добавляем отзыв
+            
             await this.orderModel.addFeedback(orderId, {
                 from: role === USER_ROLES.CLIENT ? 'customer' : 'executor',
                 rating: rating.score,
@@ -1343,7 +1312,7 @@ class OrderService {
                 tags: rating.tags
             });
 
-            // Обновляем рейтинг мастера
+            
             if (role === USER_ROLES.CLIENT && order.executor.masterId) {
                 await this.masterModel.updateRating(order.executor.masterId, {
                     orderId,
@@ -1356,12 +1325,12 @@ class OrderService {
                 });
             }
 
-            // Обновляем рейтинг клиента
+            
             if (role === USER_ROLES.MASTER) {
-                // TODO: Implement client rating update
+                
             }
 
-            // Публикуем событие
+            
             await this.eventPublisher.publish(EVENT_TYPES.ORDER_RATED, {
                 orderId,
                 ratedBy: userId,
@@ -1384,14 +1353,12 @@ class OrderService {
         }
     }
 
-    /**
-     * Повторный заказ
-     */
+    
     async repeatOrder(orderId, userId) {
         try {
             const originalOrder = await this.getOrder(orderId);
 
-            // Проверка прав
+            
             if (originalOrder.customer.userId.toString() !== userId.toString()) {
                 throw new BusinessError(
                     'Not authorized to repeat this order',
@@ -1400,7 +1367,7 @@ class OrderService {
                 );
             }
 
-            // Создаем новый заказ на основе старого
+            
             const newOrderData = {
                 serviceType: originalOrder.service.code,
                 serviceOptions: originalOrder.service.options,
@@ -1435,11 +1402,9 @@ class OrderService {
         }
     }
 
-    /**
-     * Вспомогательные методы
-     */
+    
 
-    // Валидация пользователя
+    
     async validateUser(userId) {
         const user = await this.userModel.findById(userId);
 
@@ -1462,9 +1427,9 @@ class OrderService {
         return user;
     }
 
-    // Проверка лимитов пользователя
+    
     async checkUserOrderLimits(userId) {
-        // Проверка активных заказов
+        
         const activeOrders = await this.orderModel.collection.countDocuments({
             'customer.userId': new ObjectId(userId),
             status: { $in: STATUS_GROUPS.ACTIVE }
@@ -1479,7 +1444,7 @@ class OrderService {
             );
         }
 
-        // Проверка дневного лимита
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -1498,13 +1463,13 @@ class OrderService {
         }
     }
 
-    // Валидация данных заказа
+    
     async validateOrderData(orderData, user) {
-        // TODO: Implement comprehensive validation
+        
         return orderData;
     }
 
-    // Валидация автомобиля
+    
     async validateVehicle(vehicleId, userId) {
         const vehicle = await this.vehicleModel.findById(vehicleId);
 
@@ -1535,7 +1500,7 @@ class OrderService {
         return vehicle;
     }
 
-    // Валидация услуги
+    
     async validateService(serviceType, options = []) {
         const service = await this.serviceModel.findByCode(serviceType);
 
@@ -1555,7 +1520,7 @@ class OrderService {
             );
         }
 
-        // Валидация опций
+        
         if (options.length > 0) {
             const validOptionIds = service.options.map(opt => opt.id);
             const invalidOptions = options.filter(opt => !validOptionIds.includes(opt.id));
@@ -1571,19 +1536,19 @@ class OrderService {
         return service;
     }
 
-    // Определение приоритета заказа
+    
     determinePriority(orderData) {
-        // Срочные заказы
+        
         if (orderData.urgency === 'urgent') {
             return 'high';
         }
 
-        // VIP клиенты
+        
         if (orderData.customer?.isVip) {
             return 'high';
         }
 
-        // По типу услуги
+        
         const serviceMetadata = SERVICE_METADATA[orderData.serviceType];
         if (serviceMetadata?.priority === 'critical') {
             return 'urgent';
@@ -1592,16 +1557,16 @@ class OrderService {
         return 'normal';
     }
 
-    // Расчет стоимости заказа
+    
     async calculateOrderPricing(pricingData) {
-        // Получаем базовую цену услуги
+        
         const basePrice = calculateServicePrice(pricingData.serviceType, {
             isNight: this.isNightTime(),
             isWeekend: this.isWeekend(),
             distance: pricingData.distance
         });
 
-        // Применяем surge pricing
+        
         const surgeData = await this.surgeService.getCurrentSurge(
             pricingData.location.coordinates
         );
@@ -1611,7 +1576,7 @@ class OrderService {
             total = Math.round(basePrice * surgeData.multiplier);
         }
 
-        // Добавляем стоимость опций
+        
         if (pricingData.serviceOptions) {
             for (const option of pricingData.serviceOptions) {
                 if (option.price > 0) {
@@ -1620,8 +1585,8 @@ class OrderService {
             }
         }
 
-        // Расчет комиссии
-        const commission = Math.round(total * 0.15); // 15% комиссия
+        
+        const commission = Math.round(total * 0.15); 
 
         return {
             basePrice,
@@ -1634,12 +1599,12 @@ class OrderService {
         };
     }
 
-    // Обновление статуса заказа
+    
     async updateOrderStatus(orderId, newStatus, details = {}) {
-        // Обновляем в модели
+        
         const order = await this.orderModel.updateStatus(orderId, newStatus);
 
-        // Записываем в историю
+        
         await this.recordHistory(orderId, HISTORY_EVENT_TYPES.STATUS_CHANGED, {
             actor: {
                 type: details.actorType || 'system',
@@ -1653,19 +1618,19 @@ class OrderService {
             }
         });
 
-        // Вызываем обработчик статуса
+        
         const handler = this.statusHandlers[newStatus];
         if (handler) {
             await handler(order, details);
         }
 
-        // Инвалидируем кэш
+        
         await this.cache.delete(`order:${orderId}`);
 
         return order;
     }
 
-    // Запись в историю
+    
     async recordHistory(orderId, eventType, eventData) {
         try {
             await this.orderHistoryModel.create({
@@ -1682,23 +1647,23 @@ class OrderService {
         }
     }
 
-    // Фильтрация кандидатов
+    
     async filterCandidates(order, candidates) {
         const filtered = [];
 
         for (const candidate of candidates) {
-            // Проверяем не отклонял ли мастер заказ ранее
+            
             if (order.search.criteria.excludedMasterIds.includes(candidate.masterId)) {
                 continue;
             }
 
-            // Проверяем рейтинг
+            
             if (order.search.criteria.minRating &&
                 candidate.rating < order.search.criteria.minRating) {
                 continue;
             }
 
-            // Проверяем доступность
+            
             const availability = await this.masterModel.checkAvailability(candidate.masterId);
             if (!availability.available) {
                 continue;
@@ -1710,17 +1675,17 @@ class OrderService {
         return filtered;
     }
 
-    // Уведомление мастеров
+    
     async notifyMasters(order, candidates) {
         const results = {
             notified: 0,
             failed: 0
         };
 
-        // Сортируем по приоритету
+        
         const sorted = candidates.sort((a, b) => b.score - a.score);
 
-        // Берем топ N мастеров
+        
         const toNotify = sorted.slice(0, this.config.search.maxMastersToNotify);
 
         for (const candidate of toNotify) {
@@ -1744,7 +1709,7 @@ class OrderService {
 
                 results.notified++;
 
-                // Записываем в попытку поиска
+                
                 await this.orderModel.updateOne(
                     {
                         _id: order._id,
@@ -1772,23 +1737,23 @@ class OrderService {
         return results;
     }
 
-    // Расширение поиска
+    
     async expandSearch(orderId, currentAttempt) {
         const order = await this.getOrder(orderId);
 
-        // Проверяем лимит попыток
+        
         if (currentAttempt >= this.config.limits.maxSearchAttempts) {
             await this.handleSearchFailed(orderId);
             return;
         }
 
-        // Увеличиваем радиус
+        
         const newRadius = Math.min(
             order.search.criteria.radius + this.config.search.radiusExpansionStep,
             order.search.criteria.maxRadius
         );
 
-        // Обновляем критерии поиска
+        
         await this.orderModel.updateOne(
             { _id: order._id },
             {
@@ -1798,7 +1763,7 @@ class OrderService {
             }
         );
 
-        // Запускаем новый поиск
+        
         setTimeout(() => {
             this.orderPublisher.publishSearchRequest({
                 orderId,
@@ -1809,7 +1774,7 @@ class OrderService {
         }, this.config.timeouts.searchExpansionInterval);
     }
 
-    // Обработка таймаута поиска
+    
     async handleSearchTimeout(orderId) {
         const order = await this.getOrder(orderId);
 
@@ -1818,7 +1783,7 @@ class OrderService {
         }
     }
 
-    // Обработка неудачного поиска
+    
     async handleSearchFailed(orderId) {
         await this.updateOrderStatus(orderId, ORDER_STATUS.EXPIRED, {
             actorType: 'system',
@@ -1827,7 +1792,7 @@ class OrderService {
 
         const order = await this.getOrder(orderId);
 
-        // Уведомляем клиента
+        
         await this.notificationService.create({
             type: 'order_search_failed',
             recipientId: order.customer.userId,
@@ -1838,7 +1803,7 @@ class OrderService {
             }
         });
 
-        // Публикуем событие
+        
         await this.eventPublisher.publish(EVENT_TYPES.ORDER_SEARCH_FAILED, {
             orderId,
             attempts: order.search.attempts.length,
@@ -1846,14 +1811,14 @@ class OrderService {
         });
     }
 
-    // Обработка таймаута назначения
+    
     async handleAssignmentTimeout(orderId, masterId) {
         const order = await this.getOrder(orderId);
 
         if (order.status === ORDER_STATUS.ASSIGNED &&
             order.executor.masterId?.toString() === masterId.toString()) {
 
-            // Отменяем назначение
+            
             await this.orderModel.updateOne(
                 { _id: order._id },
                 {
@@ -1866,13 +1831,13 @@ class OrderService {
                 }
             );
 
-            // Возвращаем к поиску
+            
             await this.updateOrderStatus(orderId, ORDER_STATUS.SEARCHING, {
                 actorType: 'system',
                 reason: 'master_no_response'
             });
 
-            // Продолжаем поиск
+            
             await this.orderPublisher.publishSearchRequest({
                 orderId,
                 attempt: order.search.attempts.length + 1,
@@ -1882,12 +1847,12 @@ class OrderService {
         }
     }
 
-    // Проверка движения мастера
+    
     async checkMasterMovement(orderId, masterId) {
         const order = await this.getOrder(orderId);
 
         if (order.status === ORDER_STATUS.ACCEPTED) {
-            // Если мастер не начал движение, отправляем напоминание
+            
             await this.notificationService.create({
                 type: 'reminder_start_movement',
                 recipientId: masterId,
@@ -1897,7 +1862,7 @@ class OrderService {
         }
     }
 
-    // Валидация причины отмены
+    
     validateCancellationReason(reason, role) {
         const reasons = CANCELLATION_REASONS[role.toUpperCase()];
 
@@ -1912,19 +1877,19 @@ class OrderService {
         return reason;
     }
 
-    // Расчет штрафа за отмену
+    
     async calculateCancellationPenalty(order, role) {
         if (role !== USER_ROLES.CLIENT) {
-            return 0; // Мастера не платят штраф
+            return 0; 
         }
 
-        // Бесплатная отмена в первые N минут
+        
         const orderAge = Date.now() - new Date(order.timing.createdAt).getTime();
         if (orderAge < this.config.cancellation.freeMinutes * 60 * 1000) {
             return 0;
         }
 
-        // Если мастер уже прибыл
+        
         if (order.status === ORDER_STATUS.ARRIVED ||
             order.status === ORDER_STATUS.IN_PROGRESS) {
             return Math.min(
@@ -1933,7 +1898,7 @@ class OrderService {
             );
         }
 
-        // Стандартный штраф
+        
         return Math.min(
             Math.round(order.pricing.calculation.total *
                 this.config.cancellation.penaltyPercentage / 100),
@@ -1941,9 +1906,9 @@ class OrderService {
         );
     }
 
-    // Применение штрафа
+    
     async applyPenalty(userId, amount, orderId) {
-        // TODO: Implement penalty application
+        
         this.logger.info({
             userId,
             amount,
@@ -1951,7 +1916,7 @@ class OrderService {
         }, 'Penalty applied');
     }
 
-    // Инициализация обработчиков статусов
+    
     initializeStatusHandlers() {
         return {
             [ORDER_STATUS.SEARCHING]: async (order) => {
@@ -1976,7 +1941,7 @@ class OrderService {
         };
     }
 
-    // Утилиты
+    
     isNightTime() {
         const hour = new Date().getHours();
         return hour >= 22 || hour < 6;
@@ -1987,7 +1952,7 @@ class OrderService {
         return day === 0 || day === 6;
     }
 
-    // Получение статистики
+    
     getStats() {
         return {
             ...this.stats,
